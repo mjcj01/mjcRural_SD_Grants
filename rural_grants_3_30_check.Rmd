@@ -1,0 +1,110 @@
+---
+title: "Preliminary Results for Access to Grants in Rural PA Schools"
+author: "Michael Cattell & Scott Levengood"
+output: word_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("Scripts//data_load.R", local = knitr::knit_global())
+```
+
+# Introduction
+
+Rural school districts face unique challenges. They exist distant from major economic centers, have high poverty rates, and have less infrastructure, like broadband internet, roads, or government services. Part of the effect these factors have on rural residents is the quality of their and their kids' education.
+
+Rural school districts are more reliant on state revenue to fund their schools; they (like many non-suburban school districts) receive little federal funding (Figure 1) and raise less revenue through property taxes (Figure 2). As mentioned previously, however, part of the cause of these differences are distinct from other locale classifications.
+
+```{r locale_prop_rev, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Figure 1"}
+pa_directory %>%
+  select(state_leaid, urban_centric_locale) %>%
+  merge(., revenue_overview_22_23, by.x = "state_leaid", by.y = "AUN") %>%
+  merge(., adm_22_23, by.x = "state_leaid", by.y = "AUN") %>%
+  mutate("loc_tot_rev_pct" = loc_tot_rev / tot_rev,
+         "loc_tax_rev_pct" = loc_tax_rev / tot_rev,
+         "locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                    ifelse(grepl("Town", urban_centric_locale), "Town",
+                    ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                    ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+  pivot_longer(cols = contains("_rev")) %>%
+  filter(name %in% c("loc_tot_rev", "sta_tot_rev", "fed_tot_rev", "oth_tot_rev")) %>%
+  mutate(value = ifelse(is.na(value), 0, value),
+         adm_per_rev = value / adm) %>%
+  group_by(locale, name) %>%
+  reframe("median_rev" = median(adm_per_rev)) %>%
+  ggplot(aes(x = locale, y = median_rev, fill = name)) +
+  geom_col(position = position_fill()) +
+  labs(x = "Locale",
+       y = "Proportion of Revenue") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+
+```
+
+```{r loc_tax_rev_pct, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Figure 2"}
+pa_directory %>%
+  select(state_leaid, urban_centric_locale) %>%
+  merge(., revenue_overview_22_23, by.x = "state_leaid", by.y = "AUN") %>%
+  merge(., adm_22_23, by.x = "state_leaid", by.y = "AUN") %>%
+  mutate("loc_tot_rev_pct" = loc_tot_rev / tot_rev,
+         "loc_tax_rev_pct" = loc_tax_rev / tot_rev,
+         "locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                    ifelse(grepl("Town", urban_centric_locale), "Town",
+                    ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                    ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+  mutate(loc_tax_rev_pct = ifelse(is.na(loc_tax_rev_pct), 0, loc_tax_rev_pct)) %>%
+  group_by(locale) %>%
+  reframe("median_loc_tax_pct" = median(loc_tax_rev_pct)) %>%
+  ggplot(aes(x = locale, y = median_loc_tax_pct)) +
+  geom_col() +
+  labs(x = "Locale",
+       y = "Median Local Property Tax as % of District Revenue") +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+
+Grants and other programs from the federal government have the potential to act as an equalizer. This study investigates whether federal grants and programs harness this potential and actually serve as an equalizer.
+
+# Literature Review
+
+# Data and Methods
+
+Data for this study comes from two primary sources: the National Center for Education Statistics (NCES) and the Pennsylvania Department of Education (PDE).
+
+NCES provides a wide range of data through their Common Core of Data (CCD). Data on school district enrollment by race and locale classification (i.e., whether a district is considered urban, suburban, a town, or rural). Sourcing locale classifications from NCES provides a standardized comparison with other states, though utilizing a different rurality classification system is certainly possible.
+
+PDE publishes school district finance data on school districts for each fiscal year. At the time of writing, the most recent fiscal year with available finance data is FY2022-23, which encompasses the same school year. Data on average daily membership (ADM) and weighted average daily membership (WADM), as well as categorical revenue sources (e.g., revenue from specific state programs, federal grants, etc.).
+
+An important limitation to note with the FY2022-23 is a significant rural grant program, Title V, Part B, Subpart 1 of the Elementary and Secondary Education Act (ESEA) and its subsequent re-authorizations, is grouped with other federal funds irrespective to locale classifications. Beginning with the FY2023-24 district revenue data, Title V, Part B, Subpart 1 revenue is its own classification. That data, however, is not yet available.
+
+To answer whether
+
+# Results
+
+```{r rural_fed_sum, echo = FALSE, message = FALSE, warning = FALSE}
+rural_rev_sum <- rural_school_spending %>%
+  filter(Rollup1AccountCode == 8000) %>%
+  mutate(Amount2 = ifelse(is.na(Amount2), 0, Amount2),
+         Amount3 = ifelse(is.na(Amount3), 0, Amount3),
+         TotalAmount = Amount1 + Amount2 + Amount3) %>%
+  pull(TotalAmount) %>%
+  sum()
+
+rural_school_spending %>%
+  filter(Rollup1AccountCode == 8000) %>%
+  mutate(Amount2 = ifelse(is.na(Amount2), 0, Amount2),
+         Amount3 = ifelse(is.na(Amount3), 0, Amount3),
+         TotalAmount = Amount1 + Amount2 + Amount3) %>%
+  group_by(AUN) %>%
+  reframe("fed_tot_rev" = sum(TotalAmount)) %>%
+  merge(., adm_22_23, by = "AUN") %>%
+  mutate("fed_rev_adm" = fed_tot_rev / adm) %>%
+  ggplot(aes(x = fed_rev_adm)) +
+  geom_histogram() +
+  labs(x = "Federal Revenue per ADM",
+       y = "# of Schools") +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  theme_minimal()
+```
+
+In the 2022-23 school year, the 168 rural school districts in Pennsylvania received \$368,778,460. This averages out to approximately \$1362.10 per student across Pennsylvanian rural school districts.
