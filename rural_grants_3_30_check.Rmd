@@ -15,7 +15,7 @@ Rural school districts face unique challenges. They exist distant from major eco
 
 Rural school districts are more reliant on state revenue to fund their schools. They, like town and urban school districts, generate less revenue through property taxes. Unlike
 
-```{r locale_prop_rev, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Figure 1"}
+```{r locale_prop_rev, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Figure 1"}
 pa_directory %>%
   select(state_leaid, urban_centric_locale) %>%
   merge(., revenue_overview_22_23, by.x = "state_leaid", by.y = "AUN") %>%
@@ -41,7 +41,7 @@ pa_directory %>%
 
 ```
 
-```{r loc_tax_rev_pct, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Figure 2"}
+```{r loc_tax_rev_pct, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Figure 2"}
 pa_directory %>%
   select(state_leaid, urban_centric_locale) %>%
   merge(., revenue_overview_22_23, by.x = "state_leaid", by.y = "AUN") %>%
@@ -69,9 +69,33 @@ Grants and other programs from the federal government have the potential to act 
 
 ## Defining Rurality
 
+-   Hoggart (1990): Argues against the monolithic "rural"
+
+-   Nelson & Nguyen (2023): Creates a new measure for rurality using amenities available through OpenStreetMap
+
 ## Rural Schools
 
+-   Schaft (2016): Rural school link with community well-being
+
+-   Masumoto & Brown-Welty (2009): School and community relationship in rural districts that are "high-performing" and have high poverty rates.
+
+-   Bauch (2001): School and community partnerships in rural districts
+
+-   Boulden & Schimmel (2021): Analysis of a university-district partnership aimed at training and retaining school counselors
+
 ## Federal Funding in Schools
+
+-   Kolbe & Rice (2012): Race to the Top (RTTP) and whether it improved funding
+
+-   Brenner (2018): The impact of the ESSA on rural education
+
+-   Yettick et al. (2014): Looking at ESEA and whether (and how) the administrative aspect of ESEA disadvantages rural school districts
+
+-   Elliot et al. (2014): Impact of the Physical Education for Progress (PEP) federal grant in a school district
+
+-   Herr & Brooks (2003): Not strictly federal, but discusses the impact of a lottery program akin to RTTP and the impact the lottery system has
+
+-   Eppley (2009): Critical look at the impact of No Child Left Behind (NCLB) on rural schools, specifically the "highly qualified teacher" provision
 
 # Data and Methods
 
@@ -85,9 +109,11 @@ An important limitation to note with the FY2022-23 is a significant rural grant 
 
 To assess the federal government's role as a funding equalizer, funding across 10 funding categories that both Pennsylvania and the federal government provides funding for will be compared. These categories are derived from the Chart of Accounts file provided by the PDE; this file is used by school districts to report revenue and expenditure data to the PDE. Revenue will be normalized by comparing revenue per average daily membership between revenue and state revenue. The expectation would be that school districts receiving more money from Pennsylvania in a given category will receive less from the federal government, and vice-versa.
 
+An important note in the classification scheme is that the Head Start program was excluded from analysis at this stage due to the way funds are distributed. Some funds are given to school districts, but funds are also given to Intermediate Units (IUs). As data could not be found on the locale classification for IUs, there was a significant swath of Head Start funding that was excluded from analysis. This data will be incorporated into analysis should locale classification data be found, or if a bridge between school districts and associated IUs is found.
+
 # Results
 
-```{r rural_fed_sum, echo = FALSE, message = FALSE, warning = FALSE}
+```{r rural_fed_sum, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE}
 rural_rev_sum <- rural_school_spending %>%
   filter(Rollup1AccountCode == 8000) %>%
   mutate(Amount2 = ifelse(is.na(Amount2), 0, Amount2),
@@ -115,15 +141,77 @@ rural_school_spending %>%
 
 In the 2022-23 school year, the 168 rural school districts in Pennsylvania received \$368,778,460. This averages out to approximately \$1362.10 per student across Pennsylvanian rural school districts.
 
-This analysis will 
+```{r preliminary_federal_state_plot, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE}
+sta_fed_lm <- lm(data = sta_fed_rev, formula = Federal ~ State) %>%
+  summary()
 
-A preliminary x ~ y plot provides a starting point for analysis by visually identifying outliers. 
-
-```{r preliminary_federal_state_plot, echo = FALSE, message = FALSE, warning = FALSE}
 ggplot(sta_fed_rev, aes(x = State, y = Federal, color = `Funding Classification`)) + 
   geom_point() +
+  geom_abline(slope = sta_fed_lm$coefficients[2,1], intercept = sta_fed_lm$coefficients[1,1]) +
   labs(x = "State Revenue per ADM",
        y = "Federal Revenue per ADM") +
-  theme_minimal()
+  theme_minimal() +
+  facet_wrap(vars(Locale))
 ```
 
+A preliminary x \~ y plot provides a starting point for analysis by identifying outliers. Contrary to the initial expectation of federal revenue and state revenue having a negative relationship, these two revenue sources have a statistically significant relationship (p = 0.000149) with an R\^2 of 0.3379, indicating a moderate correlation between the variables. This suggests that are not necessarily leveling the playing field.
+
+```{r, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE}
+library(gt)
+fed_wide <- sta_fed_rev %>%
+  select(-State) %>%
+  mutate(Federal = round(Federal, digits = 2)) %>%
+  pivot_wider(names_from = "Locale", values_from = "Federal")
+
+fed_wide[is.na(fed_wide)] <- 0
+
+gt(fed_wide) %>%
+  tab_header(title = "Federal Funding by Locale") %>%
+  tab_spanner(columns = c(Rural, Suburban, Town, Urban),
+              label = "Revenue per ADM")
+```
+
+Looking just at rural revenue per ADM, rural schools receive less federal funding for:
+
+-   (non-Head Start) child care funding,
+
+-   adult education,
+
+-   nutrition funding and training,
+
+-   low-income assistance,
+
+-   and school improvement funding
+
+compared to other types of school districts. Interestingly, rural schools receive more federal funding for workforce education and medical assistance.
+
+```{r, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE}
+library(tigris)
+library(sf)
+
+fed_revenue_22_23_1 <- fed_revenue_22_23 %>%
+  group_by(AUN) %>%
+  reframe("tot_rev" = sum(TotalAmount))
+
+school_districts_pa <- school_districts(state = "PA") %>%
+  st_transform(crs = 32617) %>%
+  select(GEOID, geometry) %>%
+  merge(., 
+        pa_directory %>%
+          select(leaid, state_leaid, urban_centric_locale),
+        by.x = "GEOID", by.y = "leaid") %>%
+  mutate("locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                    ifelse(grepl("Town", urban_centric_locale), "Town",
+                    ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                    ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+  merge(., fed_revenue_22_23_1, by.x = "state_leaid", by.y = "AUN") %>%
+  merge(., adm_22_23 %>% select(AUN, adm), by.x = "state_leaid", by.y = "AUN") %>%
+  mutate("rev_per_adm" = tot_rev / adm)
+
+ggplot(school_districts_pa) +
+  geom_sf(aes(fill = rev_per_adm)) +
+  theme_void() +
+  scale_fill_fermenter()
+```
+
+Initial results do not display a particularly obvious spatial pattern, though further spatial analysis looking at clustering will reveal a more definitive answer in that regard. The most apparent pattern is rings of suburbs around Philadelphia and Pittsburgh do not have significant federal revenue, which would make sense given the lack of federal funding suburban school districts receive in general.

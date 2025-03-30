@@ -83,7 +83,7 @@ fed_revenue_22_23 <- revenue_22_23 %>%
                                                               8754, 8755, 8756), "Federal Stimulus Funding",
                                     ifelse(AccountCode %in% c(8530, 8531, 8532, 8533, 8534, 8540), "Nutrition Funding and Training",
                                     ifelse(AccountCode %in% c(8560), "Block Grants",
-                                    ifelse(AccountCode %in% c(8580, 8640), "Child Care and Development",
+                                    ifelse(AccountCode %in% c(8580), "Child Care and Development",
                                     ifelse(AccountCode %in% c(6836), "Race to the Top",
                                     ifelse(AccountCode %in% c(8810, 8820, 8830), "Medical Assistance",
                                     ifelse(AccountCode %in% c(8610), "Homeless Assistance",
@@ -102,7 +102,7 @@ fed_revenue_22_23 <- revenue_22_23 %>%
          Amount3 = ifelse(is.na(Amount3), 0, Amount3),
          TotalAmount = Amount1 + Amount2 + Amount3) %>%
   mutate("Source" = "Federal") %>%
-  select(AUN, `Funding Classification`, TotalAmount, Source)
+  select(AUN, InstName, `Funding Classification`, TotalAmount, Source)
 
 sta_revenue_22_23 <- revenue_22_23 %>%
   mutate("Funding Classification" = ifelse(AccountCode %in% c(7230, 7271, 7272), "Special Education Funding",
@@ -120,7 +120,7 @@ sta_revenue_22_23 <- revenue_22_23 %>%
          Amount3 = ifelse(is.na(Amount3), 0, Amount3),
          TotalAmount = Amount1 + Amount2 + Amount3) %>%
   mutate("Source" = "State") %>%
-  select(AUN, `Funding Classification`, TotalAmount, Source)
+  select(AUN, InstName, `Funding Classification`, TotalAmount, Source)
 
 sta_fed_rev <- rbind(fed_revenue_22_23, sta_revenue_22_23) %>%
   filter(`Funding Classification` %in% sta_revenue_22_23$`Funding Classification`) %>%
@@ -129,7 +129,7 @@ sta_fed_rev <- rbind(fed_revenue_22_23, sta_revenue_22_23) %>%
   merge(., adm_22_23, by = "AUN") %>%
   merge(., 
         pa_directory %>%
-          select(state_leaid, urban_centric_locale) %>%
+          select(state_leaid, urban_centric_locale, leaid) %>%
           mutate("Locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
                             ifelse(grepl("Town", urban_centric_locale), "Town",
                             ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
