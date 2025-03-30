@@ -1,7 +1,76 @@
 library(tidyverse)
 library(educationdata)
 
+adm_22_23 <- read_csv("Data//adm_22_23.csv")
+
 revenue_22_23 <- read_csv("Data//revenue_22_23.csv") 
+
+revenue_overview_22_23 <- read_csv("Data//revenue_overview_22_23.csv")
+
+colnames(revenue_overview_22_23) <- c("AUN",
+                                      "school_district",
+                                      "county",
+                                      "tot_rev",
+                                      "loc_tax_rev",
+                                      "loc_oth_rev",
+                                      "loc_tot_rev",
+                                      "sta_tot_rev",
+                                      "fed_tot_rev",
+                                      "oth_tot_rev")
+
+colnames(adm_22_23) <- c("AUN", "school_district", "county", "adm", "wadm")
+
+adm_22_23 <- adm_22_23 %>%
+  select("AUN", "adm", "wadm")
+
+# pa_directory <- get_education_data(level = 'school-districts',
+#                                    source = 'ccd',
+#                                    topic = 'directory',
+#                                    filters = list(year = 2022,
+#                                                   fips = 42),
+#                                    add_labels = TRUE) %>%
+#   filter(agency_type == "Regular local school district") %>%
+#   mutate(state_leaid = gsub("PA-", "", state_leaid))
+# 
+# write_rds(pa_directory, "Data//pa_directory_2022.Rds")
+
+pa_directory <- read_rds("Data//pa_directory_2022.Rds")
+
+# pa_enrollment <- get_education_data(level = 'school-districts',
+#                          source = 'ccd',
+#                          topic = 'enrollment',
+#                          subtopic = list('race'),
+#                          filters = list(year = 2022,
+#                                         fips = 42,
+#                                         grade = 99),
+#                          add_labels = TRUE) %>%
+#   filter(leaid %in% pa_directory$leaid)
+# 
+# write_rds(pa_enrollment, "Data//pa_enrollment_2022.Rds")
+
+pa_enrollment <- read_rds("Data//pa_enrollment_2022.Rds")
+
+rural_school_directory <- pa_directory %>%
+  filter(grepl("Rural", urban_centric_locale))
+
+rural_school_enrollment <- pa_enrollment %>%
+  filter(leaid %in% rural_school_directory$leaid)
+
+rural_school_spending <- revenue_22_23 %>%
+  filter(AUN %in% rural_school_directory$state_leaid)
+
+locale_adm <- adm_22_23 %>%
+  merge(.,
+        pa_directory %>% 
+          select(state_leaid, urban_centric_locale) %>%
+          mutate("Locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                            ifelse(grepl("Town", urban_centric_locale), "Town",
+                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+          select(-urban_centric_locale), 
+        by.x = "AUN", by.y = "state_leaid") %>%
+  group_by(Locale) %>%
+  reframe("adm" = sum(adm))
 
 fed_revenue_22_23 <- revenue_22_23 %>%
   mutate("Funding Classification" = ifelse(AccountCode %in% c(8100, 8110, 8190, 8200), "Unrestricted Federal Grants",
@@ -58,69 +127,24 @@ sta_fed_rev <- rbind(fed_revenue_22_23, sta_revenue_22_23) %>%
   group_by(`Funding Classification`, AUN, Source) %>%
   reframe("tot_rev" = sum(TotalAmount)) %>%
   merge(., adm_22_23, by = "AUN") %>%
-  select(-wadm) %>%
+  merge(., 
+        pa_directory %>%
+          select(state_leaid, urban_centric_locale) %>%
+          mutate("Locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                            ifelse(grepl("Town", urban_centric_locale), "Town",
+                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+          select(-urban_centric_locale),
+        by.x = "AUN", by.y = "state_leaid") %>%
+  group_by(Locale, `Funding Classification`, Source) %>%
+  reframe("tot_rev" = sum(tot_rev),
+          "adm" = sum(adm)) %>%
   mutate("rev_per_adm" = tot_rev / adm) %>%
   select(-tot_rev, -adm) %>%
-  pivot_wider(names_from = "Source", values_from = "rev_per_adm")
-  
+  pivot_wider(names_from = "Source",
+              values_from = "rev_per_adm")
 
 sta_fed_rev[is.na(sta_fed_rev)] <- 0
-
-revenue_overview_22_23 <- read_csv("Data//revenue_overview_22_23.csv")
-
-colnames(revenue_overview_22_23) <- c("AUN",
-                                      "school_district",
-                                      "county",
-                                      "tot_rev",
-                                      "loc_tax_rev",
-                                      "loc_oth_rev",
-                                      "loc_tot_rev",
-                                      "sta_tot_rev",
-                                      "fed_tot_rev",
-                                      "oth_tot_rev")
-
-adm_22_23 <- read_csv("Data//adm_22_23.csv")
-
-colnames(adm_22_23) <- c("AUN", "school_district", "county", "adm", "wadm")
-
-adm_22_23 <- adm_22_23 %>%
-  select("AUN", "adm", "wadm")
-
-# pa_directory <- get_education_data(level = 'school-districts',
-#                                    source = 'ccd',
-#                                    topic = 'directory',
-#                                    filters = list(year = 2022,
-#                                                   fips = 42),
-#                                    add_labels = TRUE) %>%
-#   filter(agency_type == "Regular local school district") %>%
-#   mutate(state_leaid = gsub("PA-", "", state_leaid))
-# 
-# write_rds(pa_directory, "Data//pa_directory_2022.Rds")
-
-pa_directory <- read_rds("Data//pa_directory_2022.Rds")
-
-# pa_enrollment <- get_education_data(level = 'school-districts',
-#                          source = 'ccd',
-#                          topic = 'enrollment',
-#                          subtopic = list('race'),
-#                          filters = list(year = 2022,
-#                                         fips = 42,
-#                                         grade = 99),
-#                          add_labels = TRUE) %>%
-#   filter(leaid %in% pa_directory$leaid)
-# 
-# write_rds(pa_enrollment, "Data//pa_enrollment_2022.Rds")
-
-pa_enrollment <- read_rds("Data//pa_enrollment_2022.Rds")
-
-rural_school_directory <- pa_directory %>%
-  filter(grepl("Rural", urban_centric_locale))
-
-rural_school_enrollment <- pa_enrollment %>%
-  filter(leaid %in% rural_school_directory$leaid)
-
-rural_school_spending <- revenue_22_23 %>%
-  filter(AUN %in% rural_school_directory$state_leaid)
 
 nces_locale_classifications <- tibble("Rural Classification" = c("Fringe", "Distant", "Remote"),
                                       "Criteria" = c("5 miles or closer to urban area with 50,000 or more people, and is 2.5 miles or closer to urban area with less than 50,000 people.",

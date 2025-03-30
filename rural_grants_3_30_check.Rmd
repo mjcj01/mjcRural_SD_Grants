@@ -115,47 +115,15 @@ rural_school_spending %>%
 
 In the 2022-23 school year, the 168 rural school districts in Pennsylvania received \$368,778,460. This averages out to approximately \$1362.10 per student across Pennsylvanian rural school districts.
 
-```{r funding_class_table, echo = FALSE, message = FALSE, warning = FALSE}
-locale_adm <- adm_22_23 %>%
-  merge(.,
-        pa_directory %>% 
-          select(state_leaid, urban_centric_locale) %>%
-          mutate("Locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
-                            ifelse(grepl("Town", urban_centric_locale), "Town",
-                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
-                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
-          select(-urban_centric_locale), 
-        by.x = "AUN", by.y = "state_leaid") %>%
-  group_by(Locale) %>%
-  reframe("adm" = sum(adm))
-  
-revenue_22_23 %>%
-  mutate(Amount2 = ifelse(is.na(Amount2), 0, Amount2),
-         Amount3 = ifelse(is.na(Amount3), 0, Amount3),
-         TotalAmount = Amount1 + Amount2 + Amount3) %>%
-  group_by(`Funding Classification`, AUN) %>%
-  reframe("tot_rev" = sum(TotalAmount)) %>%
-  merge(.,
-        pa_directory %>% 
-          select(state_leaid, urban_centric_locale) %>%
-          mutate("Locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
-                            ifelse(grepl("Town", urban_centric_locale), "Town",
-                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
-                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
-          select(-urban_centric_locale), 
-        by.x = "AUN", by.y = "state_leaid") %>%
-  group_by(`Funding Classification`, Locale) %>%
-  reframe("tot_rev_sum" = sum(tot_rev)) %>%
-  merge(., locale_adm, by = "Locale") %>%
-  mutate("rev_per_adm" = round(tot_rev_sum / adm, digits = 1)) %>%
-  rename(`Revenue per ADM` = "rev_per_adm") %>%
-  select(-tot_rev_sum, -adm) %>%
-  pivot_wider(names_from = "Locale",
-              values_from = "Revenue per ADM") %>%
-  mutate(Rural = ifelse(is.na(Rural), 0, Rural),
-         Town = ifelse(is.na(Town), 0, Town),
-         Suburban = ifelse(is.na(Suburban), 0, Suburban),
-         Urban = ifelse(is.na(Urban), 0, Urban)) %>%
-  gt::gt()
+This analysis will 
+
+A preliminary x ~ y plot provides a starting point for analysis by visually identifying outliers. 
+
+```{r preliminary_federal_state_plot, echo = FALSE, message = FALSE, warning = FALSE}
+ggplot(sta_fed_rev, aes(x = State, y = Federal, color = `Funding Classification`)) + 
+  geom_point() +
+  labs(x = "State Revenue per ADM",
+       y = "Federal Revenue per ADM") +
+  theme_minimal()
 ```
 
