@@ -13,7 +13,7 @@ source("Scripts//data_load.R", local = knitr::knit_global())
 
 Rural school districts face unique challenges. They exist distant from major economic centers, have high poverty rates, and have less infrastructure, like broadband internet, roads, or government services. Part of the effect these factors have on rural residents is the quality of their and their kids' education.
 
-Rural school districts are more reliant on state revenue to fund their schools. They, like town and urban school districts, generate less revenue through property taxes. Unlike
+Like many districts classified as urban or town,
 
 ```{r locale_prop_rev, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Figure 1"}
 pa_directory %>%
@@ -112,6 +112,8 @@ To assess the federal government's role as a funding equalizer, funding across 1
 An important note in the classification scheme is that the Head Start program was excluded from analysis at this stage due to the way funds are distributed. Some funds are given to school districts, but funds are also given to Intermediate Units (IUs). As data could not be found on the locale classification for IUs, there was a significant swath of Head Start funding that was excluded from analysis. This data will be incorporated into analysis should locale classification data be found, or if a bridge between school districts and associated IUs is found.
 
 # Results
+
+## Broad Results
 
 ```{r rural_fed_sum, out.width = "50%", echo = FALSE, message = FALSE, warning = FALSE}
 rural_rev_sum <- rural_school_spending %>%
@@ -215,3 +217,9 @@ ggplot(school_districts_pa) +
 ```
 
 Initial results do not display a particularly obvious spatial pattern, though further spatial analysis looking at clustering will reveal a more definitive answer in that regard. The most apparent pattern is rings of suburbs around Philadelphia and Pittsburgh do not have significant federal revenue, which would make sense given the lack of federal funding suburban school districts receive in general.
+
+## Demographic Disparities
+
+## Economic Disparities
+
+# Conclusions

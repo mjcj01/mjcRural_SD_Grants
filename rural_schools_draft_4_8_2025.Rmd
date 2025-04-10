@@ -1,0 +1,170 @@
+---
+title: "Federal Funds and Rural Schools"
+author: "Michael Cattell, Scott Levengood"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(extrafont)
+# font_import()
+loadfonts(device = "win")
+source("Scripts//data_load.R", local = knitr::knit_global())
+```
+
+# Introduction
+
+Rural schools face unique challenges. They exist distant from major economic centers, have high poverty rates, and have less infrastructure, like broadband internet, roads, or government services. Part of the effect these factors have on rural residents is the quality of their and their kids' education.
+
+Grants and other programs from the federal government have the potential to act as an equalizer between districts situated in different contexts. This study investigates whether federal grants and programs harness this potential and actually serve as an equalizer.
+
+# Literature Review
+
+## Defining Rurality
+
+-   Hoggart (1990): Argues against the monolithic "rural"
+
+-   Nelson & Nguyen (2023): Creates a new measure for rurality using amenities available through OpenStreetMap
+
+## Rural Schools
+
+-   Schaft (2016): Rural school link with community well-being
+
+-   Masumoto & Brown-Welty (2009): School and community relationship in rural districts that are "high-performing" and have high poverty rates.
+
+-   Bauch (2001): School and community partnerships in rural districts
+
+-   Boulden & Schimmel (2021): Analysis of a university-district partnership aimed at training and retaining school counselors
+
+## Federal Funding in Schools
+
+-   Kolbe & Rice (2012): Race to the Top (RTTP) and whether it improved funding
+
+-   Brenner (2018): The impact of the ESSA on rural education
+
+-   Yettick et al. (2014): Looking at ESEA and whether (and how) the administrative aspect of ESEA disadvantages rural school districts
+
+-   Elliot et al. (2014): Impact of the Physical Education for Progress (PEP) federal grant in a school district
+
+-   Herr & Brooks (2003): Not strictly federal, but discusses the impact of a lottery program akin to RTTP and the impact the lottery system has
+
+-   Eppley (2009): Critical look at the impact of No Child Left Behind (NCLB) on rural schools, specifically the "highly qualified teacher" provision
+
+# Data and Methods
+
+Data for this study comes from the National Center for Education Statistics (NCES), which is the statistical arm for the U.S. Department of Education.
+
+NCES provides a wide range of data through their Common Core of Data (CCD). Data on school district enrollment by race and locale classification (i.e., whether a district is considered urban, suburban, a town, or rural). Sourcing locale classifications from NCES provides a standardized comparison with other states, though utilizing a different rurality classification system is certainly possible. The definitions NCES uses for defining locales is in the table below.
+
+```{r nces_locale_defs, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "NCES Locale Definition."}
+library(gt)
+
+nces_locale_classifications %>%
+  gt() %>%
+  cols_align(align = "center") %>%
+  cols_width(Criteria ~ px(300)) %>%
+  tab_options(data_row.padding = px(10))
+```
+
+School district revenue data comes from the most recent NCES School District Finance Survey, which was for the 2021-2022 school year. This survey collects school finance data for school districts (or local education agencies, as NCES refers to them as) in all 50 states plus Washington D.C. Revenue and expenditure data is aggregated by category, such as Title I funding, nutrition programs, and gifted education.
+
+Initially, school district finance data from the Pennsylvania Department of Education (PDE) was used. PDE publishes school district finance data annually, with revenue and expenditure aggregated into smaller categories than NCES does. In order to get a broader view of school districts' revenue, these codes were grouped together (e.g., categories related to nutritional education and lunch programs were aggregated together). PDE's data, however, proved to be unreliable. Upon analysis of nutrition funding, only a handful of school districts were listed as receiving federal funds, a finding that is certainly false. Upon analysis of the NCES School District Finance Survey, this finding was confirmed and the data source used for this study was switched from PDE's data to data from NCES.
+
+In order to evaluate whether the federal government is able to harness the role as an equalizer, categories from the NCES School District Finance Survey will be picked and coded as funding one of five categories:
+
+-   bilingual education,
+-   career and technical education,
+-   school meal programs,
+-   special education programs,
+-   teacher retention and training programs.
+
+These categories were picked due to the clear overlap in language used in the Finance Survey between federal and state revenue. The lack of granularity within the Finance Survey is certainly a limitation of this study, though this is the best available data at the time of writing. While the PDE finance data provided more granular funding categories, the lack of actual data present in the files makes them unusable.
+
+# Who's Learning in Rural Schools?
+
+Rural schools tend to have a higher proportion of White students than urban and suburban schools. This trend matches the demographics of the communities these school districts are situated in, where urban and (as of the last few decades) suburban areas have more a more diverse racial makeup than rural areas.
+
+```{r tot_stu_demog, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Student Enrollment Percentages Across Pennsylvania by Locale."}
+library(gt)
+
+pa_enrollment %>%
+  select(leaid, race, enrollment) %>%
+  merge(.,
+        pa_directory %>%
+          select(leaid, urban_centric_locale) %>% 
+          mutate("locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                            ifelse(grepl("Town", urban_centric_locale), "Town",
+                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+          select(-urban_centric_locale)) %>%
+  filter(race != "Total" & race != "Unknown") %>%
+  group_by(race, locale) %>%
+  reframe("enrollment" = sum(enrollment)) %>%
+  group_by(locale) %>%
+  reframe("race" = race,
+          "pct_enr" = (enrollment / sum(enrollment)) * 100) %>%
+  rename(Locale = "locale") %>%
+  pivot_wider(names_from = "race", values_from = "pct_enr") %>%
+  mutate("Other Race" = `American Indian or Alaska Native` +
+           `Native Hawaiian or other Pacific Islander` +
+           `Two or more races`) %>%
+  select(-`American Indian or Alaska Native`, 
+         -`Native Hawaiian or other Pacific Islander`, 
+         -`Two or more races`) %>%
+  pivot_longer(cols = c(White, Black, Hispanic, Asian, `Other Race`)) %>%
+  mutate(value = paste(round(value, digits = 2), "%", sep = "")) %>%
+  pivot_wider(names_from = name, values_from = value) %>%
+  gt() %>%
+  cols_align(align = "center")
+```
+
+Additionally, this is broadly applicable in rural school districts across the state. Only two districts have a non-White racial group make up more than 25% of their student population; 29% of students enrolled in both Pocono Mountain and Upper Adams School Districts are Hispanic.
+
+```{r tot_stu_demog_map, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Map of Rural School Districts, Colored by Enrollment Percentages."}
+pa_enrollment %>%
+  filter(leaid %in% rural_school_directory$leaid) %>%
+  filter(race != "Total" & race != "Unknown") %>%
+  select(leaid, race, enrollment) %>%
+  pivot_wider(names_from = race, values_from = enrollment) %>%
+  mutate("Other Race" = `American Indian or Alaska Native` +
+           `Native Hawaiian or other Pacific Islander` +
+           `Two or more races`) %>%
+  select(-`American Indian or Alaska Native`, 
+         -`Native Hawaiian or other Pacific Islander`, 
+         -`Two or more races`) %>%
+  pivot_longer(cols = c(White, Black, Hispanic, Asian, `Other Race`),
+               names_to = "Race", values_to = "Enrollment") %>%
+  group_by(leaid) %>%
+  reframe(Race = Race,
+          `% Enrollment` = Enrollment / sum(Enrollment)) %>%
+  merge(., pa_school_districts, by.x = "leaid", by.y = "GEOID") %>%
+  st_as_sf() %>%
+  ggplot() +
+  geom_sf(aes(fill = `% Enrollment`), linewidth = 0, color = "#FFFFFF") +
+  facet_wrap(vars(Race)) +
+  theme_void() +
+  scale_fill_fermenter(direction = 1, palette = "PuBuGn") +
+  theme(text = element_text(family = "Tinos"))
+```
+
+
+
+# Results
+
+The discussion of results is broken into three parts:
+
+-   Variations in federal nutrition and school meal funding,
+-   Federal teacher training and retention funding,
+-   Where rural-specific federal funding
+
+## Nutrition Programs
+
+School meal funding is somewhat unique among school funding categories; while most categories are heavily reliant on state revenue to provide funding, the vast majority of school meal funding comes from the federal government. This pattern holds true in Pennsylvania.
+
+## School Staff Funding
+
+## Rural-Specific Federal Grants
+
+# Conclusions
