@@ -47,7 +47,8 @@ pa_directory <- read_rds("Data//pa_directory_2022.Rds")
 # 
 # write_rds(pa_enrollment, "Data//pa_enrollment_2022.Rds")
 
-pa_enrollment <- read_rds("Data//pa_enrollment_2022.Rds")
+pa_enrollment <- read_rds("Data//pa_enrollment_2022.Rds") %>%
+  mutate(ifelse(enrollment < 0, 0, enrollment))
 
 fed_rev <- nces_rev %>%
   select(LEAID, NAME, TOTALREV, TFEDREV, TSTREV,
@@ -61,22 +62,22 @@ fed_rev <- nces_rev %>%
                             ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
           select(-urban_centric_locale),
         by.x = "LEAID", by.y = "leaid") %>%
-  pivot_longer(cols = c(C22, C15, B11, C19, C25)) %>%
+  pivot_longer(cols = c(C22, C15, C19, C25)) %>%
   merge(.,
         pa_enrollment %>%
           filter(race == "Total") %>%
           select(leaid, enrollment),
         by.x = "LEAID", by.y = "leaid") %>%
+  mutate(value = ifelse(value < 0, 0, value)) %>%
   mutate("rev_per_enr" = value / enrollment) %>%
   select(-value, -enrollment) %>%
   pivot_wider(names_from = "name",
               values_from = "rev_per_enr") %>%
   rename(`Teacher Funding` = "C22",
          `Special Education` = "C15",
-         `Bilingual Education` = "B11",
          `Career and Technical Education` = "C19",
          `School Meal Programs` = "C25") %>%
-  pivot_longer(cols = c("Teacher Funding", "Special Education", "Bilingual Education", "Career and Technical Education", "School Meal Programs"),
+  pivot_longer(cols = c("Teacher Funding", "Special Education", "Career and Technical Education", "School Meal Programs"),
                values_to = "fed_rev") %>%
   select(LEAID, locale, name, fed_rev)
 
@@ -92,22 +93,22 @@ sta_rev <- nces_rev %>%
                             ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
           select(-urban_centric_locale),
         by.x = "LEAID", by.y = "leaid") %>%
-  pivot_longer(cols = c(C04, C05, C07, C09, C10)) %>%
+  pivot_longer(cols = c(C04, C05, C09, C10)) %>%
   merge(.,
         pa_enrollment %>%
           filter(race == "Total") %>%
           select(leaid, enrollment),
         by.x = "LEAID", by.y = "leaid") %>%
+  mutate(value = ifelse(value < 0, 0, value)) %>%
   mutate("rev_per_enr" = value / enrollment) %>%
   select(-value, -enrollment) %>%
   pivot_wider(names_from = "name",
               values_from = "rev_per_enr") %>%
   rename(`Teacher Funding` = "C04",
          `Special Education` = "C05",
-         `Bilingual Education` = "C07",
          `Career and Technical Education` = "C09",
          `School Meal Programs` = "C10") %>%
-  pivot_longer(cols = c("Teacher Funding", "Special Education", "Bilingual Education", "Career and Technical Education", "School Meal Programs"),
+  pivot_longer(cols = c("Teacher Funding", "Special Education", "Career and Technical Education", "School Meal Programs"),
                values_to = "sta_rev") %>%
   select(LEAID, locale, name, sta_rev)
 
@@ -142,10 +143,3 @@ rural_school_directory <- pa_directory %>%
 # write_rds(census_pop, "Data//census_pop.rds")
 
 census_pop <- read_rds("Data//census_pop.rds")
-
-lm <- fed_sta_comp %>%
-  filter(name == "Teacher Funding" & locale == "Rural") %>%
-  lm(data = ., formula = fed_rev ~ sta_rev) %>%
-  summary()
-
-lm$r.squared

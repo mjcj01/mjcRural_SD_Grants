@@ -1,9 +1,13 @@
 ---
 title: "Federal Funds and Rural Schools"
 author: "Michael Cattell, Scott Levengood"
+header-includes:
+    - \usepackage{setspace}\doublespacing
+    - \usepackage{booktabs}
 output:
   pdf_document: default
   word_document: default
+fontsize: 12pt
 ---
 
 ```{r setup, include = FALSE}
@@ -18,7 +22,7 @@ source("Scripts//data_load.R", local = knitr::knit_global())
 
 Rural schools face unique challenges. They exist distant from major economic centers, have high poverty rates, and have less infrastructure, like broadband internet, roads, or government services. Part of the effect these factors have on rural residents is the quality of their and their kids' education.
 
-Grants and other programs from the federal government have the potential to act as an equalizer between districts situated in different contexts. This study investigates whether federal grants and programs harness this potential and actually serve as an equalizer.
+Grants and other programs from the federal government have the potential to act as an equalizer between districts situated in different contexts. This study investigates whether federal grants and programs harness this potential and actually serve as an equalizer. It will also aim to understand these through the lens of racial, 
 
 # Literature Review
 
@@ -56,7 +60,7 @@ Grants and other programs from the federal government have the potential to act 
 
 ## Data
 
-Data for this study comes from the National Center for Education Statistics (NCES), which is the statistical arm for the U.S. Department of Education.
+Data for this study comes from the National Center for Education Statistics (NCES), which is the statistical arm for the U.S. Department of Education, and the U.S. Census Bureau.
 
 NCES provides a wide range of data through their Common Core of Data (CCD). Data on school district enrollment by race and locale classification (i.e., whether a district is considered urban, suburban, a town, or rural). Sourcing locale classifications from NCES provides a standardized comparison with other states, though utilizing a different rurality classification system is certainly possible. The definitions NCES uses for defining locales is in the table below.
 
@@ -74,11 +78,12 @@ School district revenue data comes from the most recent NCES School District Fin
 
 Initially, school district finance data from the Pennsylvania Department of Education (PDE) was used. PDE publishes school district finance data annually, with revenue and expenditure aggregated into smaller categories than NCES does. In order to get a broader view of school districts' revenue, these codes were grouped together (e.g., categories related to nutritional education and lunch programs were aggregated together). PDE's data, however, proved to be unreliable. Upon analysis of nutrition funding, only a handful of school districts were listed as receiving federal funds, a finding that is certainly false. Upon analysis of the NCES School District Finance Survey, this finding was confirmed and the data source used for this study was switched from PDE's data to data from NCES.
 
+Data from the U.S. Census Bureau on poverty estimates is also used. The Census publishes annual poverty estimates at the school district level as the Small Area Income and Poverty Estimates (SAIPE). This allows for analysis of federal funding through the lens of economic equity, as well as racial equity.
+
 ## Methods
 
 Funding categories from the NCES School District Finance Survey will be picked and coded as funding one of five categories:
 
--   bilingual education,
 -   career and technical education,
 -   school meal programs,
 -   special education programs,
@@ -86,7 +91,7 @@ Funding categories from the NCES School District Finance Survey will be picked a
 
 These categories were picked due to the clear overlap in language used in the Finance Survey between federal and state revenue. The lack of granularity within the Finance Survey is certainly a limitation of this study, though this is the best available data at the time of writing. While the PDE finance data provided more granular funding categories, the lack of actual data present in the files makes them unusable.
 
-In order to evaluate 
+In order to evaluate how effective federal funding is at being an equalizer, an initial linear regression model will be run in order to test whether 
 
 # Who's Learning in Rural Schools?
 
@@ -128,7 +133,7 @@ pa_enrollment %>%
 
 This is a trend that generally matches the communities these school districts are situated in (see Figure 1). Rural school districts also tend to have predominantly White populations reside in them and low percentages of other ethnoracial groups. There is also far less variation in how diverse these places are; while suburban and urban schools have a mix of schools predominantly enrolling one ethnoracial group and schools with diverse enrollment, no rural school has a White student enrollment percentage under 50%.
 
-```{r enr_pop_xy_plot, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Student enrollment % vs. community population %, broken down by locale classification and ethnoracial group."}
+```{r enr_pop_xy_plot, echo = FALSE, message = FALSE, warning = FALSE, out.width = "75%", fig.align = "center", fig.cap = "Student enrollment % vs. community population %, broken down by locale classification and ethnoracial group."}
 pa_enrollment %>%
   select(leaid, race, enrollment) %>%
   filter(race != "Total") %>%
@@ -160,7 +165,7 @@ pa_enrollment %>%
 
 Additionally, this is also a broad spatial pattern for rural school districts across the state (see Figure 2). Only two districts have a non-White ethnoracial group make up more than 25% of their student population; 29% of students enrolled in both Pocono Mountain and Upper Adams School Districts are Hispanic.
 
-```{r tot_stu_demog_map, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Map of Rural School Districts, Colored by Enrollment Percentages."}
+```{r tot_stu_demog_map, echo = FALSE, message = FALSE, warning = FALSE, out.width = "75%", fig.align = "center", fig.cap = "Map of Rural School Districts, Colored by Enrollment Percentages."}
 pa_enrollment %>%
   filter(leaid %in% rural_school_directory$leaid) %>%
   filter(race != "Total" & race != "Unknown") %>%
@@ -192,7 +197,9 @@ pa_enrollment %>%
 
 # Results
 
-As a starting point for analysis, linear regression was tested to see the correlation between state funding in the five selected categories and federal funding. If federal funding were behaving as an equalizer, the expectation is there would be a negative relationship between federal and state funding in each category; as you can increase state funding in a category, federal funding would decrease.
+As a starting point for analysis, linear regression was tested to see the correlation between state funding in the five selected categories and federal funding in rural schools. If federal funding were behaving as an equalizer, the expectation is there would be a negative relationship between federal and state funding in each category; as you can increase state funding in a category, federal funding would decrease.
+
+Bilingual education was initially included in this analysis due to the clear overlap in funding language in the NCES School District Finance Survey, but was removed as no school district was reported as having received state funding for bilingual education programs despites its presence as a line item on the Finance Survey.
 
 ```{r initial_regression, echo = FALSE, message = FALSE, warning = FALSE}
 library(gt)
@@ -203,20 +210,80 @@ for (i in unique(fed_sta_comp$name)) {
     lm(data = ., formula = fed_rev ~ sta_rev) %>%
     summary()
   
+  anova <- fed_sta_comp %>%
+  filter(name == i & locale == "Rural") %>%
+  lm(data = ., formula = fed_rev ~ sta_rev) %>%
+  anova()
+  
   df <- tibble("Category" = c(i),
-               "Estimate" = c(lm$coefficients[2,1]),
-               "Std. Error" = c(lm$coefficients[2,2]),
-               "t Value" = c(lm$coefficients[2,3]),
-               "p Value" = c(lm$coefficients[2,4]),
-               "R^2 Value" = c(lm$r.squared))
+               "n" = length(lm$residuals),
+               "Estimate" = round(lm$coefficients[2,1], digits = 3),
+               "p Value" = round(lm$coefficients[2,4], digits = 3),
+               "R^2 Value" = round(lm$r.squared, digits = 3))
   initial_reg_table <- rbind(initial_reg_table, df)
 }
 initial_reg_table %>%
-  gt()
+  gt() %>%
+  cols_align(align = "center") %>%
+  cols_width(Category ~ px(200))
+```
+
+```{r initial_regression_plots, echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", out.width = "100%", fig.cap = "x vs. y plot of State and Federal funding in four different funding categories with a line of best fit overlayed."}
+fed_sta_comp %>%
+  ggplot(aes(x = sta_rev, y = fed_rev, color = name)) +
+  geom_point() +
+  geom_smooth(aes(group = name), method = "lm") +
+  facet_wrap(vars(name), 
+             scales = "free",
+             labeller = labeller(name = label_wrap_gen(15)),
+             ncol = 2) +
+  labs(x = "State Revenue per Enrolled Student",
+       y = "Federal Revenue per Enrolled Student") +
+  scale_color_discrete(name = "Funding Category") +
+  scale_x_continuous(labels = scales::dollar_format(prefix="$")) +
+  scale_y_continuous(labels = scales::dollar_format(prefix="$")) +
+  guides(color=guide_legend(override.aes=list(fill=NA),
+                            ncol = 2, byrow = TRUE)) +
+  theme_minimal() +
+  theme(text = element_text(family = "Tinos"),
+        legend.position = "none")
+```
+
+A few interesting observations stick out with this initial regression model and x ~ y plot. The first observation, and the one most applicable to the central hypothesis, is that no funding category has a negative relation. Special education gets the closest with an estimated coefficient of 0. 
+
+The second observation is that three of the four funding categories produced statistically significant results (p < 0.05). The one funding category that did not produce a statistically significant result--special education--is curious and warrants further investigation later in this section. 
+
+Teacher training and retention programs did produce a statistically significant result with an R^2 value of 0.0 and a circle cluster of points on the regression plot, indicating no real relationship between state and federal funding sources. This can be an issue for rural school districts, as they have historically had issues recruiting and retaining teachers in their districts (Monk, 2007; Williams et al., 2022). While rural school districts receive more revenue per student from teacher-related programs than town and suburban districts, they still generate about 12% less revenue per student than urban schools.
+
+```{r teacher_locale_table, echo = FALSE, message = FALSE, warning = FALSE}
+fed_sta_comp %>%
+  mutate("fed_tot_rev" = fed_rev * enrollment,
+         "sta_tot_rev" = sta_rev * enrollment) %>%
+  select(LEAID, locale, name, fed_tot_rev, sta_tot_rev, enrollment) %>%
+  filter(name == "Teacher Funding") %>%
+  select(-name) %>%
+  mutate(fed_tot_rev = ifelse(is.nan(fed_tot_rev), 0, fed_tot_rev),
+         sta_tot_rev = ifelse(is.nan(sta_tot_rev), 0, sta_tot_rev)) %>%
+  group_by(locale) %>%
+  reframe("fed_rev" = sum(fed_tot_rev),
+          "sta_rev" = sum(sta_tot_rev),
+          "tot_rev" = sum(fed_tot_rev, sta_tot_rev),
+          "enr" = sum(enrollment)) %>%
+  mutate("tot_per_enr" = paste("$", round(tot_rev / enr, digits = 2), sep = ""),
+         "fed_per_enr" = paste("$", round(fed_rev / enr, digits = 2), sep = ""),
+         "sta_per_enr" = paste("$", round(sta_rev / enr, digits = 2), sep = "")) %>%
+  select(locale, tot_per_enr, fed_per_enr, sta_per_enr) %>%
+  rename(Locale = "locale",
+         `Total Rev. / Enrolled` = "tot_per_enr",
+         `Federal Rev. / Enrolled` = "fed_per_enr",
+         `State Rev. / Enrolled` = "sta_per_enr") %>%
+  gt() %>%
+  cols_align(align = "center")
 ```
 
 
-The discussion of results is broken into three parts:
+
+Further analysis of results is broken into three parts:
 
 -   Variations in federal nutrition and school meal funding,
 -   Federal teacher training and retention funding,
@@ -230,4 +297,9 @@ School meal funding is somewhat unique among school funding categories; while mo
 
 ## Rural-Specific Federal Grants
 
-# Conclusions
+# Discussion
+
+## Importance to Civil Rights
+
+## Further Study
+
