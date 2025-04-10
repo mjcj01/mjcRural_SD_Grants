@@ -54,6 +54,8 @@ Grants and other programs from the federal government have the potential to act 
 
 # Data and Methods
 
+## Data
+
 Data for this study comes from the National Center for Education Statistics (NCES), which is the statistical arm for the U.S. Department of Education.
 
 NCES provides a wide range of data through their Common Core of Data (CCD). Data on school district enrollment by race and locale classification (i.e., whether a district is considered urban, suburban, a town, or rural). Sourcing locale classifications from NCES provides a standardized comparison with other states, though utilizing a different rurality classification system is certainly possible. The definitions NCES uses for defining locales is in the table below.
@@ -72,7 +74,9 @@ School district revenue data comes from the most recent NCES School District Fin
 
 Initially, school district finance data from the Pennsylvania Department of Education (PDE) was used. PDE publishes school district finance data annually, with revenue and expenditure aggregated into smaller categories than NCES does. In order to get a broader view of school districts' revenue, these codes were grouped together (e.g., categories related to nutritional education and lunch programs were aggregated together). PDE's data, however, proved to be unreliable. Upon analysis of nutrition funding, only a handful of school districts were listed as receiving federal funds, a finding that is certainly false. Upon analysis of the NCES School District Finance Survey, this finding was confirmed and the data source used for this study was switched from PDE's data to data from NCES.
 
-In order to evaluate whether the federal government is able to harness the role as an equalizer, categories from the NCES School District Finance Survey will be picked and coded as funding one of five categories:
+## Methods
+
+Funding categories from the NCES School District Finance Survey will be picked and coded as funding one of five categories:
 
 -   bilingual education,
 -   career and technical education,
@@ -82,9 +86,11 @@ In order to evaluate whether the federal government is able to harness the role 
 
 These categories were picked due to the clear overlap in language used in the Finance Survey between federal and state revenue. The lack of granularity within the Finance Survey is certainly a limitation of this study, though this is the best available data at the time of writing. While the PDE finance data provided more granular funding categories, the lack of actual data present in the files makes them unusable.
 
+In order to evaluate 
+
 # Who's Learning in Rural Schools?
 
-Rural schools tend to have a higher proportion of White students than urban and suburban schools. This trend matches the demographics of the communities these school districts are situated in, where urban and (as of the last few decades) suburban areas have more a more diverse racial makeup than rural areas.
+Rural (and town) school districts are more racially homogeneous than their urban and suburban counterparts. They enroll predominantly White students, while having low proportions of Black, Hispanic, and Asian students.
 
 ```{r tot_stu_demog, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Student Enrollment Percentages Across Pennsylvania by Locale."}
 library(gt)
@@ -120,7 +126,39 @@ pa_enrollment %>%
   cols_align(align = "center")
 ```
 
-Additionally, this is broadly applicable in rural school districts across the state. Only two districts have a non-White racial group make up more than 25% of their student population; 29% of students enrolled in both Pocono Mountain and Upper Adams School Districts are Hispanic.
+This is a trend that generally matches the communities these school districts are situated in (see Figure 1). Rural school districts also tend to have predominantly White populations reside in them and low percentages of other ethnoracial groups. There is also far less variation in how diverse these places are; while suburban and urban schools have a mix of schools predominantly enrolling one ethnoracial group and schools with diverse enrollment, no rural school has a White student enrollment percentage under 50%.
+
+```{r enr_pop_xy_plot, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Student enrollment % vs. community population %, broken down by locale classification and ethnoracial group."}
+pa_enrollment %>%
+  select(leaid, race, enrollment) %>%
+  filter(race != "Total") %>%
+  group_by(leaid) %>%
+  reframe("race" = race,
+          "stu_pct" = enrollment / sum(enrollment)) %>%
+  filter(race %in% c("Hispanic", "White", "Black", "Asian")) %>%
+  merge(., census_pop, by.x = c("leaid", "race"), by.y = c("GEOID", "variable")) %>%
+  merge(.,
+        pa_directory %>%
+          select(leaid, urban_centric_locale) %>% 
+          mutate("locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                                   ifelse(grepl("Town", urban_centric_locale), "Town",
+                                          ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                                                 ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))),
+        by = "leaid") %>%
+  ggplot(aes(x = stu_pct, y = pop_pct, color = race)) +
+  geom_point() +
+  facet_wrap(vars(locale)) +
+  geom_abline(slope = 1, color = "#000000") +
+  theme_minimal() +
+  scale_x_continuous(labels = scales::label_percent()) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  scale_color_discrete(name = "Ethnoracial Group") +
+  labs(x = "Student Enrollment %",
+       y = "Community Population Percentage") +
+  theme(text = element_text(family = "Tinos"))
+```
+
+Additionally, this is also a broad spatial pattern for rural school districts across the state (see Figure 2). Only two districts have a non-White ethnoracial group make up more than 25% of their student population; 29% of students enrolled in both Pocono Mountain and Upper Adams School Districts are Hispanic.
 
 ```{r tot_stu_demog_map, echo = FALSE, message = FALSE, warning = FALSE, fig.cap = "Map of Rural School Districts, Colored by Enrollment Percentages."}
 pa_enrollment %>%
@@ -143,15 +181,40 @@ pa_enrollment %>%
   st_as_sf() %>%
   ggplot() +
   geom_sf(aes(fill = `% Enrollment`), linewidth = 0, color = "#FFFFFF") +
-  facet_wrap(vars(Race)) +
+  facet_wrap(vars(Race), ncol = 2) +
   theme_void() +
-  scale_fill_fermenter(direction = 1, palette = "PuBuGn") +
+  scale_fill_fermenter(direction = 1, palette = "PuBuGn",
+                       labels = scales::label_percent()) +
   theme(text = element_text(family = "Tinos"))
 ```
 
 
 
 # Results
+
+As a starting point for analysis, linear regression was tested to see the correlation between state funding in the five selected categories and federal funding. If federal funding were behaving as an equalizer, the expectation is there would be a negative relationship between federal and state funding in each category; as you can increase state funding in a category, federal funding would decrease.
+
+```{r initial_regression, echo = FALSE, message = FALSE, warning = FALSE}
+library(gt)
+initial_reg_table <- NULL
+for (i in unique(fed_sta_comp$name)) {
+  lm <- fed_sta_comp %>%
+    filter(name == i & locale == "Rural") %>%
+    lm(data = ., formula = fed_rev ~ sta_rev) %>%
+    summary()
+  
+  df <- tibble("Category" = c(i),
+               "Estimate" = c(lm$coefficients[2,1]),
+               "Std. Error" = c(lm$coefficients[2,2]),
+               "t Value" = c(lm$coefficients[2,3]),
+               "p Value" = c(lm$coefficients[2,4]),
+               "R^2 Value" = c(lm$r.squared))
+  initial_reg_table <- rbind(initial_reg_table, df)
+}
+initial_reg_table %>%
+  gt()
+```
+
 
 The discussion of results is broken into three parts:
 

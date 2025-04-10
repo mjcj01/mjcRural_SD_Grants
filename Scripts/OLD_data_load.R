@@ -1,9 +1,6 @@
 library(tidyverse)
 library(educationdata)
 library(sf)
-library(tigris)
-
-school_districts(state = 42)
 
 adm_22_23 <- read_csv("Data//adm_22_23.csv")
 

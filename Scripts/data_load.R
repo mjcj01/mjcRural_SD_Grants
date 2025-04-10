@@ -3,6 +3,7 @@ library(educationdata)
 library(haven)
 library(sf)
 library(tigris)
+library(tidycensus)
 
 nces_locale_classifications <- tibble("Rural Classification" = c("Fringe", "Distant", "Remote"),
                                       "Criteria" = c("5 miles or closer to urban area with 50,000 or more people, and is 2.5 miles or closer to urban area with less than 50,000 people.",
@@ -70,12 +71,12 @@ fed_rev <- nces_rev %>%
   select(-value, -enrollment) %>%
   pivot_wider(names_from = "name",
               values_from = "rev_per_enr") %>%
-  rename(teachers = "C22",
-         spled = "C15",
-         biling = "B11",
-         ctc = "C19",
-         meals = "C25") %>%
-  pivot_longer(cols = c("teachers", "spled", "biling", "ctc", "meals"),
+  rename(`Teacher Funding` = "C22",
+         `Special Education` = "C15",
+         `Bilingual Education` = "B11",
+         `Career and Technical Education` = "C19",
+         `School Meal Programs` = "C25") %>%
+  pivot_longer(cols = c("Teacher Funding", "Special Education", "Bilingual Education", "Career and Technical Education", "School Meal Programs"),
                values_to = "fed_rev") %>%
   select(LEAID, locale, name, fed_rev)
 
@@ -101,12 +102,12 @@ sta_rev <- nces_rev %>%
   select(-value, -enrollment) %>%
   pivot_wider(names_from = "name",
               values_from = "rev_per_enr") %>%
-  rename(teachers = "C04",
-         spled = "C05",
-         biling = "C07",
-         ctc = "C09",
-         meals = "C10") %>%
-  pivot_longer(cols = c("teachers", "spled", "biling", "ctc", "meals"),
+  rename(`Teacher Funding` = "C04",
+         `Special Education` = "C05",
+         `Bilingual Education` = "C07",
+         `Career and Technical Education` = "C09",
+         `School Meal Programs` = "C10") %>%
+  pivot_longer(cols = c("Teacher Funding", "Special Education", "Bilingual Education", "Career and Technical Education", "School Meal Programs"),
                values_to = "sta_rev") %>%
   select(LEAID, locale, name, sta_rev)
 
@@ -129,19 +130,22 @@ poverty_data <- read_csv("Data//poverty_data_2021_22.csv") %>%
 rural_school_directory <- pa_directory %>%
   filter(grepl("Rural", urban_centric_locale))
 
-fed_sta_comp %>% 
-  merge(., poverty_data, by = "LEAID") %>%
-  filter(locale == "Rural") %>%
-  ggplot(aes(x = young_pov_pct, y = fed_rev, color = locale)) +
-  geom_point() +
-  facet_wrap(vars(name))
+# variables <- c("Hispanic" = "P2_002N", "White" = "P2_005N", "Black" = "P2_006N", "Asian" = "P2_008N")
+# 
+# census_pop <- get_decennial(geography = "school district (unified)",
+#               variables = variables,
+#               summary_var = "P2_001N",
+#               state = "PA",
+#               year = 2020) %>%
+#   mutate("pop_pct" = value / summary_value)
+# 
+# write_rds(census_pop, "Data//census_pop.rds")
 
-ggplot(poverty_data, aes(x = young_pov_pct, y = tot_pov_pct)) +
-  geom_point() +
-  geom_abline(slope =  0.15)
+census_pop <- read_rds("Data//census_pop.rds")
 
-test <- fed_sta_comp %>% 
-  merge(., poverty_data, by = "LEAID") %>%
-  filter(name == "teachers" & locale == "Urban") %>%
-  lm(data = ., young_pov_pct ~ sta_rev) %>%
+lm <- fed_sta_comp %>%
+  filter(name == "Teacher Funding" & locale == "Rural") %>%
+  lm(data = ., formula = fed_rev ~ sta_rev) %>%
   summary()
+
+lm$r.squared
