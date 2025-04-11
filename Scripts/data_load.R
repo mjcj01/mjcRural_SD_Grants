@@ -143,3 +143,43 @@ rural_school_directory <- pa_directory %>%
 # write_rds(census_pop, "Data//census_pop.rds")
 
 census_pop <- read_rds("Data//census_pop.rds")
+
+crdc_spled_enr <- read_csv("Data//Enrollment.csv") %>%
+  filter(LEA_STATE == "PA") %>%
+  select(LEAID, SCHID, SCH_ENR_IDEA_M, SCH_ENR_IDEA_F, SCH_IDEAENR_HI_M, SCH_IDEAENR_HI_F,
+         SCH_IDEAENR_AS_M, SCH_IDEAENR_AS_F,
+         SCH_IDEAENR_WH_M, SCH_IDEAENR_WH_F, SCH_IDEAENR_BL_M, SCH_IDEAENR_BL_F,
+         SCH_ENR_504_M, SCH_ENR_504_F, SCH_504ENR_HI_M, SCH_504ENR_HI_F,
+         SCH_504ENR_AS_M, SCH_504ENR_AS_F,
+         SCH_504ENR_WH_M, SCH_504ENR_WH_F, SCH_504ENR_BL_M, SCH_504ENR_BL_F)
+
+crdc_spled_enr[crdc_spled_enr < 0] <- 0
+
+crdc_spled_enr <- crdc_spled_enr %>%
+  group_by(LEAID) %>%
+  reframe(TOT_IDEA = SCH_ENR_IDEA_M + SCH_ENR_IDEA_F,
+          HISP_IDEA = SCH_IDEAENR_HI_M + SCH_IDEAENR_HI_F,
+          ASIAN_IDEA = SCH_IDEAENR_AS_M + SCH_IDEAENR_AS_F,
+          WHITE_IDEA = SCH_IDEAENR_WH_M + SCH_IDEAENR_WH_F,
+          BLACK_IDEA = SCH_IDEAENR_BL_M + SCH_IDEAENR_BL_F,
+          TOT_504 = SCH_ENR_504_M + SCH_ENR_504_F,
+          HISP_504 = SCH_504ENR_HI_M + SCH_504ENR_HI_F,
+          ASIAN_504 = SCH_504ENR_AS_M + SCH_504ENR_AS_F,
+          WHITE_504 = SCH_504ENR_WH_M + SCH_504ENR_WH_F,
+          BLACK_504 = SCH_504ENR_BL_M + SCH_504ENR_BL_F,
+          TOT_SPLED = TOT_IDEA + TOT_504,
+          HISP_SPLED = HISP_IDEA + HISP_504,
+          ASIAN_SPLED = ASIAN_IDEA + ASIAN_504,
+          WHITE_SPLED = WHITE_IDEA + WHITE_504,
+          BLACK_SPLED = BLACK_IDEA + BLACK_504) %>%
+  select(LEAID, contains("IDEA")) %>%
+  rename(Black = "BLACK_IDEA",
+         Hispanic = "HISP_IDEA",
+         White = "WHITE_IDEA",
+         Asian = "ASIAN_IDEA",
+         Total = "TOT_IDEA")
+
+title_i_nces <- nces_rev %>%
+  select(LEAID, TOTALREV, TFEDREV, V33, C14) %>%
+  mutate("title1_per_enr" = C14 / V33) %>%
+  merge(., poverty_data, by = "LEAID")

@@ -60,7 +60,7 @@ Grants and other programs from the federal government have the potential to act 
 
 ## Data
 
-Data for this study comes from the National Center for Education Statistics (NCES), which is the statistical arm for the U.S. Department of Education, and the U.S. Census Bureau.
+Data for this study comes from the National Center for Education Statistics (NCES), which is the statistical arm for the U.S. Department of Education, the U.S. Census Bureau, and Civil Rights Data Collection.
 
 NCES provides a wide range of data through their Common Core of Data (CCD). Data on school district enrollment by race and locale classification (i.e., whether a district is considered urban, suburban, a town, or rural). Sourcing locale classifications from NCES provides a standardized comparison with other states, though utilizing a different rurality classification system is certainly possible. The definitions NCES uses for defining locales is in the table below.
 
@@ -80,6 +80,8 @@ Initially, school district finance data from the Pennsylvania Department of Educ
 
 Data from the U.S. Census Bureau on poverty estimates is also used. The Census publishes annual poverty estimates at the school district level as the Small Area Income and Poverty Estimates (SAIPE). This allows for analysis of federal funding through the lens of economic equity, as well as racial equity.
 
+Lastly, IDEA enrollment data is provided from the 2021-2022 Civil Rights Data Collection (CRDC) survey, which is administered through the U.S. Department of Education's Office for Civil Rights. This is a universal survey--that is, all public schools respond-- done at the school level that is conducted every other school that collects data used to monitor civil rights enforcement. This includes data related to discipline, gifted education, course offerings, and special education. 
+
 ## Methods
 
 Funding categories from the NCES School District Finance Survey will be picked and coded as funding one of five categories:
@@ -94,6 +96,8 @@ These categories were picked due to the clear overlap in language used in the Fi
 In order to evaluate how effective federal funding is at being an equalizer, an initial linear regression model will be run in order to test whether 
 
 # Who's Learning in Rural Schools?
+
+## Racial Composition
 
 Rural (and town) school districts are more racially homogeneous than their urban and suburban counterparts. They enroll predominantly White students, while having low proportions of Black, Hispanic, and Asian students.
 
@@ -112,7 +116,8 @@ pa_enrollment %>%
           select(-urban_centric_locale)) %>%
   filter(race != "Total" & race != "Unknown") %>%
   group_by(race, locale) %>%
-  reframe("enrollment" = sum(enrollment)) %>%
+  reframe("enrollment" = sum(enrollment),
+          "n" = n()) %>%
   group_by(locale) %>%
   reframe("race" = race,
           "pct_enr" = (enrollment / sum(enrollment)) * 100) %>%
@@ -126,14 +131,15 @@ pa_enrollment %>%
          -`Two or more races`) %>%
   pivot_longer(cols = c(White, Black, Hispanic, Asian, `Other Race`)) %>%
   mutate(value = paste(round(value, digits = 2), "%", sep = "")) %>%
-  pivot_wider(names_from = name, values_from = value) %>%
+  pivot_wider(names_from = Locale, values_from = value) %>%
+  rename(Race = "name") %>%
   gt() %>%
   cols_align(align = "center")
 ```
 
 This is a trend that generally matches the communities these school districts are situated in (see Figure 1). Rural school districts also tend to have predominantly White populations reside in them and low percentages of other ethnoracial groups. There is also far less variation in how diverse these places are; while suburban and urban schools have a mix of schools predominantly enrolling one ethnoracial group and schools with diverse enrollment, no rural school has a White student enrollment percentage under 50%.
 
-```{r enr_pop_xy_plot, echo = FALSE, message = FALSE, warning = FALSE, out.width = "75%", fig.align = "center", fig.cap = "Student enrollment % vs. community population %, broken down by locale classification and ethnoracial group."}
+```{r enr_pop_xy_plot, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%", fig.align = "center", fig.cap = "Student enrollment % vs. community population %, broken down by locale classification and ethnoracial group."}
 pa_enrollment %>%
   select(leaid, race, enrollment) %>%
   filter(race != "Total") %>%
@@ -165,41 +171,112 @@ pa_enrollment %>%
 
 Additionally, this is also a broad spatial pattern for rural school districts across the state (see Figure 2). Only two districts have a non-White ethnoracial group make up more than 25% of their student population; 29% of students enrolled in both Pocono Mountain and Upper Adams School Districts are Hispanic.
 
-```{r tot_stu_demog_map, echo = FALSE, message = FALSE, warning = FALSE, out.width = "75%", fig.align = "center", fig.cap = "Map of Rural School Districts, Colored by Enrollment Percentages."}
-pa_enrollment %>%
-  filter(leaid %in% rural_school_directory$leaid) %>%
-  filter(race != "Total" & race != "Unknown") %>%
-  select(leaid, race, enrollment) %>%
-  pivot_wider(names_from = race, values_from = enrollment) %>%
-  mutate("Other Race" = `American Indian or Alaska Native` +
-           `Native Hawaiian or other Pacific Islander` +
-           `Two or more races`) %>%
-  select(-`American Indian or Alaska Native`, 
-         -`Native Hawaiian or other Pacific Islander`, 
-         -`Two or more races`) %>%
-  pivot_longer(cols = c(White, Black, Hispanic, Asian, `Other Race`),
-               names_to = "Race", values_to = "Enrollment") %>%
-  group_by(leaid) %>%
-  reframe(Race = Race,
-          `% Enrollment` = Enrollment / sum(Enrollment)) %>%
-  merge(., pa_school_districts, by.x = "leaid", by.y = "GEOID") %>%
-  st_as_sf() %>%
-  ggplot() +
-  geom_sf(aes(fill = `% Enrollment`), linewidth = 0, color = "#FFFFFF") +
-  facet_wrap(vars(Race), ncol = 2) +
-  theme_void() +
-  scale_fill_fermenter(direction = 1, palette = "PuBuGn",
-                       labels = scales::label_percent()) +
-  theme(text = element_text(family = "Tinos"))
+## Economic Composition
+
+Giving schools additional funding to assist with students in poverty has been a core part of the federal Elementary and Secondary Education Act (ESEA) and its subsequent re-authorizations since it passed in the 1960s.
+
+```{r stu_poverty_table, echo = FALSE, message = FALSE, warning = FALSE}
+library(gt)
+poverty_data %>%
+  select(LEAID, young_pop, young_pov_pop, young_pov_pct) %>%
+  merge(.,
+        pa_directory %>%
+          select(leaid, urban_centric_locale) %>% 
+          mutate("locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                            ifelse(grepl("Town", urban_centric_locale), "Town",
+                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+          select(-urban_centric_locale),
+        by.x = "LEAID", by.y = "leaid") %>%
+  mutate(young_pov_pct = young_pov_pct * 100) %>%
+  group_by(locale) %>%
+  reframe("pov_pct" = paste(round(sum(young_pov_pop) / sum(young_pop) * 100, digits = 2), "%", sep = ""),
+          "n" = n(),
+          "Mean %" = paste(round(mean(young_pov_pct), digits = 2),"%",sep=""),
+          "St. Dev." = round(sd(young_pov_pct), digits = 4)) %>%
+  rename(Locale = "locale",
+         `Est. % of Students in Poverty` = "pov_pct") %>%
+  gt() %>%
+  cols_align(align = "center")
+```
+
+Though many rural areas are impoverished (Monk, 2007), data from the U.S. Census Bureau shows that rural school districts have poverty rates more than half that of urban areas. Poverty rates between rural and suburban areas, on the other hand, are similar. The distribution of poverty rates, however, looks different between locale classifications. Rural school districts have a much narrower  distribution (standard deviation of 4.62%) than urban school districts (SD of 9.36%) and suburban school districts (SD of 7.64%).
+
+```{r pov_dens_plot, echo = FALSE, message = FALSE, warning = FALSE}
+poverty_data %>%
+  select(LEAID, young_pov_pct) %>%
+  merge(.,
+        pa_directory %>%
+          select(leaid, urban_centric_locale) %>% 
+          mutate("locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                            ifelse(grepl("Town", urban_centric_locale), "Town",
+                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+          select(-urban_centric_locale),
+        by.x = "LEAID", by.y = "leaid") %>%
+  ggplot(aes(x = young_pov_pct, fill = locale)) +
+  geom_density(alpha = 0.25) +
+  labs(x = "% of Students in Poverty") +
+  scale_fill_discrete(name = "Locale") +
+  scale_x_continuous(labels = scales::percent) +
+  theme_minimal() +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        text = element_text(family = "Tinos"),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank())
 ```
 
 
 
+## IDEA Composition
+
+The third and final demographic this study will analyze in part is IDEA enrollment. IDEA enrollment is used over broader special education enrollment because IDEA funding to school districts is explicitly listed in the NCES School District Finance Survey, whereas Section 504 funding and other special education funding sources are not specifically outlined.
+
+```{r idea_enr_locale_table, echo = FALSE, message = FALSE, warning = FALSE}
+crdc_spled_enr %>%
+  pivot_longer(cols = c(Total, Hispanic, Asian, White, Black),
+               names_to = "race", values_to = "IDEA_enr") %>%
+  group_by(LEAID, race) %>%
+  reframe("IDEA_enr" = sum(IDEA_enr)) %>%
+  merge(.,
+        pa_enrollment %>%
+          filter(race %in% c("Total", "Hispanic", "Asian", "White", "Black")) %>%
+          select(leaid, race, enrollment),
+        by.x = c("LEAID", "race"), by.y = c("leaid", "race")) %>%
+  merge(.,
+        pa_directory %>%
+          select(leaid, urban_centric_locale) %>% 
+          mutate("locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
+                            ifelse(grepl("Town", urban_centric_locale), "Town",
+                            ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                            ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))) %>%
+          select(-urban_centric_locale),
+        by.x = "LEAID", by.y = "leaid") %>%
+  group_by(race, locale) %>%
+  reframe(IDEA_enr = sum(IDEA_enr),
+          TOT_enr = sum(enrollment),
+          IDEA_pct = paste(round(sum(IDEA_enr) / sum(enrollment) * 100, digits = 2), "%", sep = "")) %>%
+  select(race, locale, IDEA_pct) %>%
+  rename(Race = "race",
+         Locale = "locale",
+         `% Enrolled in IDEA` = "IDEA_pct") %>%
+  pivot_wider(names_from = Locale,
+              values_from = `% Enrolled in IDEA`) %>%
+  mutate(Race = as.factor(Race)) %>%
+  arrange(fct_relevel(Race, "Total")) %>%
+  gt() %>%
+  cols_align(align = "center")
+```
+
+Rural school districts' IDEA enrollment patterns are not dissimilar from that of other locales. They are, nevertheless, troubling; Black and Hispanic students are enrolled in rural schools at disproportionately high rates. Despite making up 2.92% of enrolled students in rural school districts, Black students account for 22.19% of IDEA enrollment in those same schools; that is a staggering 7.6 times difference. Hispanic students make up 5.61% of enrolled students in rural schools, and yet make up 20.73% of students enrolled in IDEA in rural schools. Mis-classification of Black and Hispanic students into special education programs has long been a practice that internally segregates schools (Parker, 2024) (i.e., the school-wide demographics are racially integrated, but within the school programming is still segregated), as students in special education programs often end up in separate classrooms for special education-related classwork.
+
 # Results
 
-As a starting point for analysis, linear regression was tested to see the correlation between state funding in the five selected categories and federal funding in rural schools. If federal funding were behaving as an equalizer, the expectation is there would be a negative relationship between federal and state funding in each category; as you can increase state funding in a category, federal funding would decrease.
+As a starting point for analysis, linear regression was tested to see the correlation between state funding in the five selected categories and federal funding in rural school districts. If federal funding were behaving as an equalizer, the expectation is there would be a negative relationship between federal and state funding in each category; as you can increase state funding in a category, federal funding would decrease.
 
-Bilingual education was initially included in this analysis due to the clear overlap in funding language in the NCES School District Finance Survey, but was removed as no school district was reported as having received state funding for bilingual education programs despites its presence as a line item on the Finance Survey.
+Bilingual education was initially included in this analysis due to the clear overlap in funding language in the NCES School District Finance Survey, but was removed as no school district was reported as having received state funding for bilingual education programs despite its presence as a line item on the Finance Survey.
 
 ```{r initial_regression, echo = FALSE, message = FALSE, warning = FALSE}
 library(gt)
@@ -230,6 +307,7 @@ initial_reg_table %>%
 
 ```{r initial_regression_plots, echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", out.width = "100%", fig.cap = "x vs. y plot of State and Federal funding in four different funding categories with a line of best fit overlayed."}
 fed_sta_comp %>%
+  filter(LEAID %in% rural_school_directory$leaid) %>%
   ggplot(aes(x = sta_rev, y = fed_rev, color = name)) +
   geom_point() +
   geom_smooth(aes(group = name), method = "lm") +
@@ -281,17 +359,89 @@ fed_sta_comp %>%
   cols_align(align = "center")
 ```
 
-
+The final observation is that only one funding category--school meal funding--had 1.) a large effective size of 2.535, 2.) a moderate correlation strength (R^2 value of 0.2), and 3.) a statistically significant result (p < 0.05). This will be explored in more detail in a subsequent section.
 
 Further analysis of results is broken into three parts:
 
 -   Variations in federal nutrition and school meal funding,
 -   Federal teacher training and retention funding,
--   Where rural-specific federal funding
+-   Rural-specific funding programs.
+
+These further analyses will be looked at through racial and economic student composition.
 
 ## Nutrition Programs
 
 School meal funding is somewhat unique among school funding categories; while most categories are heavily reliant on state revenue to provide funding, the vast majority of school meal funding comes from the federal government. This pattern holds true in Pennsylvania.
+
+As stated above, school meal funding is correlated relatively strongly between state and federal funding, with more funding coming from federal revenue than state; for every $1 a state contributes at a rural school, the federal governments contributes around \$2.54. 
+
+### Race and Nutrition Funding
+
+To analyze racial composition and nutrition funding, a model was assembled that correlated federal meal revenue with enrollment percentages for four ethnoracial groups: Asian, Black, Hispanic, and White students. The results of this model can be seen below.
+
+```{r nutrition_race_reg, echo = FALSE, message = FALSE, warning = FALSE}
+nutrition_race_reg <- fed_rev %>%
+  filter(locale == "Rural") %>%
+  filter(name == "School Meal Programs") %>%
+  merge(.,
+        pa_enrollment %>%
+          filter(race %in% c("White", "Black", "Hispanic", "Asian")) %>%
+          select(leaid, race, enrollment),
+        by.x = "LEAID", by.y = "leaid") %>%
+  merge(.,
+        pa_enrollment %>%
+          filter(race %in% c("Total")) %>%
+          select(leaid, enrollment) %>%
+          rename(tot_enr = "enrollment"),
+        by.x = "LEAID", by.y = "leaid") %>%
+  mutate(enr_pct = enrollment / tot_enr) %>%
+  select(-enrollment, -tot_enr) %>%
+  pivot_wider(names_from = race, values_from = enr_pct) %>%
+  lm(data = ., formula = fed_rev ~ White + Black + Hispanic + Asian) %>% 
+  summary()
+
+nutrition_race_reg$coefficients[2:5,] %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(., "Race") %>%
+  gt()
+```
+
+There are a few notable takeaways from this model. The first is that all ethnoracial groups but Black students have a negative relationship; as one group's enrollment percentage goes up, federal funding for meals goes down to varying degrees depending on the ethnoracial group. Black students have a slightly positively correlated relationship with federal meal revenue. Notably, though, only the correlation between Asian students and federal meal revenue produces a statistically significant (p < 0.05) result. While this is an interesting correlation, the R^2 value is only 0.1159, indicating that while statistically significant, the relationship is not particularly strong. This pattern is likely more elaborately explained through the lens of poverty rates in schools.
+
+### Poverty and Nutrition Funding
+
+The purpose of federal nutrition assistance is to assist students whose families have difficulty affording lunches at school. The free and reduced meal program is a stable source of meals for many students. As a result, focusing on the poverty rate lens would likely show a clearer relationship between federal meal revenue and the poverty rate at a school, as opposed to between federal meal revenue and a school's ethnoracial enrollment percentages.
+
+```{r nutrition_pov_reg, echo = FALSE, message = FALSE, warning = FALSE}
+nutrition_pov_rev <- fed_rev %>%
+  filter(locale == "Rural" & name == "School Meal Programs") %>%
+  merge(., poverty_data, by = "LEAID") %>%
+  rename(`Est. % of Students in Poverty` = "young_pov_pct") %>%
+  lm(data = ., formula = fed_rev ~ `Est. % of Students in Poverty`) %>% summary()
+nutrition_pov_rev <- nutrition_pov_rev$coefficients %>%
+  as.data.frame()
+nutrition_pov_rev[2,] %>%
+  tibble::rownames_to_column(., " ") %>%
+  gt()
+```
+
+```{r nutrition_pov_plot, echo = FALSE, message = FALSE, warning = FALSE}
+fed_rev %>%
+  filter(locale == "Rural" & name == "School Meal Programs") %>%
+  merge(., poverty_data, by = "LEAID") %>%
+  ggplot(aes(x = young_pov_pct, y = fed_rev)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(x = "Est. % of Students in Poverty",
+       y = "Federal Meal Revenue per Enrolled Rural Student") +
+  theme_minimal() +
+  theme(text = element_text(family = "Tinos"))
+```
+
+
+This expectation plays out in the data, with a clear relationship between federal meal revenue and a school's estimated poverty rate. This also produces a statistically significant result (p < 0.05) with an R^2 correlation value of 0.2306, indicating a moderate correlation strength.
+
+### IDEA Enrollment and Nutrition Funding
 
 ## School Staff Funding
 
