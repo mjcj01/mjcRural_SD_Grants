@@ -13,7 +13,7 @@ fontsize: 12pt
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(extrafont)
-# font_import()
+font_import()
 loadfonts(device = "win")
 source("Scripts//data_load.R", local = knitr::knit_global())
 ```
@@ -22,7 +22,7 @@ source("Scripts//data_load.R", local = knitr::knit_global())
 
 Rural schools face unique challenges. They exist distant from major economic centers, have high poverty rates, and have less infrastructure, like broadband internet, roads, or government services. Part of the effect these factors have on rural residents is the quality of their and their kids' education.
 
-Grants and other programs from the federal government have the potential to act as an equalizer between districts situated in different contexts. This study investigates whether federal grants and programs harness this potential and actually serve as an equalizer. It will also aim to understand these through the lens of racial, 
+Grants and other programs from the federal government have the potential to act as an equalizer between districts situated in different contexts. This study investigates whether federal grants and programs harness this potential and actually serve as an equalizer. It will also aim to understand these through the lens of racial,
 
 # Literature Review
 
@@ -80,7 +80,7 @@ Initially, school district finance data from the Pennsylvania Department of Educ
 
 Data from the U.S. Census Bureau on poverty estimates is also used. The Census publishes annual poverty estimates at the school district level as the Small Area Income and Poverty Estimates (SAIPE). This allows for analysis of federal funding through the lens of economic equity, as well as racial equity.
 
-Lastly, IDEA enrollment data is provided from the 2021-2022 Civil Rights Data Collection (CRDC) survey, which is administered through the U.S. Department of Education's Office for Civil Rights. This is a universal survey--that is, all public schools respond-- done at the school level that is conducted every other school that collects data used to monitor civil rights enforcement. This includes data related to discipline, gifted education, course offerings, and special education. 
+Lastly, IDEA enrollment data is provided from the 2021-2022 Civil Rights Data Collection (CRDC) survey, which is administered through the U.S. Department of Education's Office for Civil Rights. This is a universal survey--that is, all public schools respond-- done at the school level that is conducted every other school that collects data used to monitor civil rights enforcement. This includes data related to discipline, gifted education, course offerings, and special education.
 
 ## Methods
 
@@ -93,9 +93,11 @@ Funding categories from the NCES School District Finance Survey will be picked a
 
 These categories were picked due to the clear overlap in language used in the Finance Survey between federal and state revenue. The lack of granularity within the Finance Survey is certainly a limitation of this study, though this is the best available data at the time of writing. While the PDE finance data provided more granular funding categories, the lack of actual data present in the files makes them unusable.
 
-In order to evaluate how effective federal funding is at being an equalizer, an initial linear regression model will be run in order to test whether 
+In order to evaluate how effective federal funding is at being an equalizer, an initial linear regression model will be run in order to test whether
 
 # Who's Learning in Rural Schools?
+
+This study considers, to varying degrees, three different aspects of a school district's demographics in relation to the kind of federal funding they receive: racial composition, students' family income distribution, and the composition of students enrolled in programs funded by the Individual with Disabilities Education Act (IDEA).
 
 ## Racial Composition
 
@@ -173,7 +175,7 @@ Additionally, this is also a broad spatial pattern for rural school districts ac
 
 ## Economic Composition
 
-Giving schools additional funding to assist with students in poverty has been a core part of the federal Elementary and Secondary Education Act (ESEA) and its subsequent re-authorizations since it passed in the 1960s.
+Giving schools additional funding to assist with students in poverty has been a core part of the federal Elementary and Secondary Education Act (ESEA) and its subsequent re-authorizations since it passed in the 1960s. This issue is still pressing several decades after the initial passage of the ESEA due to widening income gap between students' families in schools (Reardon, 2011) and the higher cost of educating students in poverty (Ladd, 2012).
 
 ```{r stu_poverty_table, echo = FALSE, message = FALSE, warning = FALSE}
 library(gt)
@@ -200,7 +202,7 @@ poverty_data %>%
   cols_align(align = "center")
 ```
 
-Though many rural areas are impoverished (Monk, 2007), data from the U.S. Census Bureau shows that rural school districts have poverty rates more than half that of urban areas. Poverty rates between rural and suburban areas, on the other hand, are similar. The distribution of poverty rates, however, looks different between locale classifications. Rural school districts have a much narrower  distribution (standard deviation of 4.62%) than urban school districts (SD of 9.36%) and suburban school districts (SD of 7.64%).
+Though many rural areas are impoverished (Monk, 2007), data from the U.S. Census Bureau shows that rural school districts have poverty rates more than half that of urban areas. Poverty rates between rural and suburban areas, on the other hand, are similar. The distribution of poverty rates, however, looks different between locale classifications. Rural school districts have a much narrower distribution (standard deviation of 4.62%) than urban school districts (SD of 9.36%) and suburban school districts (SD of 7.64%).
 
 ```{r pov_dens_plot, echo = FALSE, message = FALSE, warning = FALSE}
 poverty_data %>%
@@ -228,7 +230,7 @@ poverty_data %>%
         panel.grid.minor.x = element_blank())
 ```
 
-
+Considering the economic characteristics of rural schools (and all schools, really), as students living in poverty require more resources to lift them to their potential (Ladd, 2012). School meal programs, after-school programming, and academic support programs all require additional funds to operate at their full potential. With this in mind, it would be expected that school districts with a higher poverty rate among its students would receive additional funding in certain funding categories than districts with a lower rate, either because of an explicit piece of the funding allocation formula that accounts for poverty (such as Title I funding) or because schools with a higher poverty rate have higher demand for certain programs (such as school meal programs).
 
 ## IDEA Composition
 
@@ -270,7 +272,7 @@ crdc_spled_enr %>%
   cols_align(align = "center")
 ```
 
-Rural school districts' IDEA enrollment patterns are not dissimilar from that of other locales. They are, nevertheless, troubling; Black and Hispanic students are enrolled in rural schools at disproportionately high rates. Despite making up 2.92% of enrolled students in rural school districts, Black students account for 22.19% of IDEA enrollment in those same schools; that is a staggering 7.6 times difference. Hispanic students make up 5.61% of enrolled students in rural schools, and yet make up 20.73% of students enrolled in IDEA in rural schools. Mis-classification of Black and Hispanic students into special education programs has long been a practice that internally segregates schools (Parker, 2024) (i.e., the school-wide demographics are racially integrated, but within the school programming is still segregated), as students in special education programs often end up in separate classrooms for special education-related classwork.
+Rural school districts' IDEA enrollment patterns are not dissimilar from that of other locales. They are, nevertheless, troubling; Black and Hispanic students are enrolled in rural schools at disproportionately high rates. Despite making up 2.92% of enrolled students in rural school districts, Black students account for 22.19% of IDEA enrollment in those same schools; that is a staggering 7.6 times difference. Hispanic students make up 5.61% of enrolled students in rural schools, and yet make up 20.73% of students enrolled in IDEA in rural schools. Mis-classification of Black and Hispanic students into special education programs has long been a practice that internally segregates schools (i.e., the school-wide demographics are racially integrated, but within the school programming is still segregated) (Parker, 2024), as students in special education programs often end up in separate classrooms for special education-related classwork.
 
 # Results
 
@@ -327,11 +329,11 @@ fed_sta_comp %>%
         legend.position = "none")
 ```
 
-A few interesting observations stick out with this initial regression model and x ~ y plot. The first observation, and the one most applicable to the central hypothesis, is that no funding category has a negative relation. Special education gets the closest with an estimated coefficient of 0. 
+A few interesting observations stick out with this initial regression model and x \~ y plot. The first observation, and the one most applicable to the central hypothesis, is that no funding category has a negative relation. Special education gets the closest with an estimated coefficient of 0.
 
-The second observation is that three of the four funding categories produced statistically significant results (p < 0.05). The one funding category that did not produce a statistically significant result--special education--is curious and warrants further investigation later in this section. 
+The second observation is that three of the four funding categories produced statistically significant results (p \< 0.05). The one funding category that did not produce a statistically significant result--special education--is curious and warrants further investigation later in this section.
 
-Teacher training and retention programs did produce a statistically significant result with an R^2 value of 0.0 and a circle cluster of points on the regression plot, indicating no real relationship between state and federal funding sources. This can be an issue for rural school districts, as they have historically had issues recruiting and retaining teachers in their districts (Monk, 2007; Williams et al., 2022). While rural school districts receive more revenue per student from teacher-related programs than town and suburban districts, they still generate about 12% less revenue per student than urban schools.
+Teacher training and retention programs did produce a statistically significant result with an R\^2 value of 0.0 and a circle cluster of points on the regression plot, indicating no real relationship between state and federal funding sources. This can be an issue for rural school districts, as they have historically had issues recruiting and retaining teachers in their districts (Monk, 2007; Williams et al., 2022). While rural school districts receive more revenue per student from teacher-related programs than town and suburban districts, they still generate about 12% less revenue per student than urban schools.
 
 ```{r teacher_locale_table, echo = FALSE, message = FALSE, warning = FALSE}
 fed_sta_comp %>%
@@ -359,21 +361,21 @@ fed_sta_comp %>%
   cols_align(align = "center")
 ```
 
-The final observation is that only one funding category--school meal funding--had 1.) a large effective size of 2.535, 2.) a moderate correlation strength (R^2 value of 0.2), and 3.) a statistically significant result (p < 0.05). This will be explored in more detail in a subsequent section.
+The final observation is that only one funding category--school meal funding--had 1.) a large effective size of 2.535, 2.) a moderate correlation strength (R\^2 value of 0.2), and 3.) a statistically significant result (p \< 0.05). This will be explored in more detail in a subsequent section.
 
 Further analysis of results is broken into three parts:
 
 -   Variations in federal nutrition and school meal funding,
--   Federal teacher training and retention funding,
+-   IDEA funding,
 -   Rural-specific funding programs.
 
-These further analyses will be looked at through racial and economic student composition.
+These further analyses will be looked at through the racial and economic demographics of a school districts' student body.
 
 ## Nutrition Programs
 
 School meal funding is somewhat unique among school funding categories; while most categories are heavily reliant on state revenue to provide funding, the vast majority of school meal funding comes from the federal government. This pattern holds true in Pennsylvania.
 
-As stated above, school meal funding is correlated relatively strongly between state and federal funding, with more funding coming from federal revenue than state; for every $1 a state contributes at a rural school, the federal governments contributes around \$2.54. 
+As stated above, school meal funding is correlated relatively strongly between state and federal funding, with more funding coming from federal revenue than state; for every \$1 a state contributes at a rural school, the federal governments contributes around \$2.54.
 
 ### Race and Nutrition Funding
 
@@ -406,7 +408,7 @@ nutrition_race_reg$coefficients[2:5,] %>%
   gt()
 ```
 
-There are a few notable takeaways from this model. The first is that all ethnoracial groups but Black students have a negative relationship; as one group's enrollment percentage goes up, federal funding for meals goes down to varying degrees depending on the ethnoracial group. Black students have a slightly positively correlated relationship with federal meal revenue. Notably, though, only the correlation between Asian students and federal meal revenue produces a statistically significant (p < 0.05) result. While this is an interesting correlation, the R^2 value is only 0.1159, indicating that while statistically significant, the relationship is not particularly strong. This pattern is likely more elaborately explained through the lens of poverty rates in schools.
+There are a few notable takeaways from this model. The first is that all ethnoracial groups but Black students have a negative relationship; as one group's enrollment percentage goes up, federal funding for meals goes down to varying degrees depending on the ethnoracial group. Black students have a slightly positively correlated relationship with federal meal revenue. Notably, though, only the correlation between Asian students and federal meal revenue produces a statistically significant (p \< 0.05) result. While this is an interesting correlation, the R\^2 value is only 0.1159, indicating that while statistically significant, the relationship is not particularly strong. This pattern is likely more elaborately explained through the lens of poverty rates in schools.
 
 ### Poverty and Nutrition Funding
 
@@ -416,8 +418,9 @@ The purpose of federal nutrition assistance is to assist students whose families
 nutrition_pov_rev <- fed_rev %>%
   filter(locale == "Rural" & name == "School Meal Programs") %>%
   merge(., poverty_data, by = "LEAID") %>%
+  mutate("young_pov_pct" = young_pov_pct*100) %>%
   rename(`Est. % of Students in Poverty` = "young_pov_pct") %>%
-  lm(data = ., formula = fed_rev ~ `Est. % of Students in Poverty`) %>% summary()
+  lm(data = ., formula = fed_rev ~ sqrt(`Est. % of Students in Poverty`)) %>% summary()
 nutrition_pov_rev <- nutrition_pov_rev$coefficients %>%
   as.data.frame()
 nutrition_pov_rev[2,] %>%
@@ -431,25 +434,134 @@ fed_rev %>%
   merge(., poverty_data, by = "LEAID") %>%
   ggplot(aes(x = young_pov_pct, y = fed_rev)) +
   geom_point() +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", formula = y ~ sqrt(x)) +
   labs(x = "Est. % of Students in Poverty",
        y = "Federal Meal Revenue per Enrolled Rural Student") +
   theme_minimal() +
+  theme(text = element_text(family = "Tinos")) +
+  scale_x_continuous(labels = scales::percent)
+```
+
+This expectation plays out in the data, with a clear square-root relationship between federal meal revenue and a school's estimated poverty rate. This also produces a statistically significant result (p \< 0.05) with an R\^2 correlation value of 0.2459, indicating a moderate correlation strength. This is a slightly stronger than applying an x vs. y relationship. This square-root based relationship does make sense given the incursion of base costs and then increasing required revenue as more students enroll in school meal programs; as more students enroll, the lower the required revenue per student becomes.
+
+## IDEA Funding
+
+The Individuals with Disabilities Education Act (IDEA) provides states with federal funding to distribute to school districts to assist with the cost of administering special education programs. 
+
+### Race and IDEA Funding
+
+As mentioned previously, Black and Hispanic students are disproportionately represented in special education programs. IDEA enrollment in rural Pennsylvania schools follow this pattern.
+
+Despite the broader pattern of disproportionate enrollment, there is little evidence from the data showing a clear relationship between the racial demographics of IDEA enrollment in a school district and the amount of IDEA funding they receive. The only statistically significant (p < 0.05) relationship is between Hispanic enrollment and IDEA funding. The effect size is fairly small with a weak correlation, though; for every extra dollar per student in IDEA funding, a Hispanic enrollment increase of ~28% would have to occur.
+
+```{r idea_race_reg, echo = FALSE, message = FALSE, warning = FALSE}
+idea_race_reg <- crdc_spled_enr %>% 
+  filter(LEAID %in% rural_school_directory$leaid) %>% 
+  pivot_longer(cols = c(Hispanic, White, Black, Asian)) %>% 
+  merge(., 
+        pa_enrollment %>% 
+          select(leaid, race, enrollment), 
+        by.x = c("LEAID", "name"), by.y = c("leaid", "race")) %>% 
+  group_by(name) %>% 
+  reframe(LEAID = LEAID, "enr_pct" = value / enrollment * 100) %>%
+  mutate(enr_pct = ifelse(is.nan(enr_pct), 0, enr_pct)) %>%
+  merge(.,
+        nces_rev %>%
+          select(LEAID, V33, C15) %>%
+          reframe(LEAID = LEAID,
+                  idea_per_enr = C15 / V33),
+        by = "LEAID") %>%
+  pivot_wider(names_from = name, values_from = enr_pct) %>%
+  mutate(Asian = ifelse(is.infinite(Asian), 0, Asian)) %>%
+  lm(data = ., formula = idea_per_enr ~ Asian + Black + White + Hispanic) %>%
+  summary()
+
+idea_race_reg$coefficients[2:5,] %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(., "Race") %>%
+  gt()
+```
+
+```{r idea_race_plot, echo = FALSE, message = FALSE, warning = FALSE}
+crdc_spled_enr %>% 
+  filter(LEAID %in% rural_school_directory$leaid) %>% 
+  pivot_longer(cols = c(Hispanic, White, Black, Asian)) %>% 
+  merge(., 
+        pa_enrollment %>% 
+          select(leaid, race, enrollment), 
+        by.x = c("LEAID", "name"), by.y = c("leaid", "race")) %>% 
+  group_by(name) %>% 
+  reframe(LEAID = LEAID, "enr_pct" = value / enrollment * 100, enr = enrollment) %>%
+  mutate(enr_pct = ifelse(is.nan(enr_pct), 0, enr_pct)) %>%
+  merge(.,
+        nces_rev %>%
+          select(LEAID, V33, C15) %>%
+          reframe(LEAID = LEAID,
+                  idea_per_enr = C15 / V33),
+        by = "LEAID") %>%
+  ggplot(aes(x = enr_pct, y = idea_per_enr, color = name)) +
+  geom_point() +
+  facet_wrap(vars(name)) +
+  geom_smooth(aes(group = name), method = "lm") +
+  xlim(0, 100) +
+  labs(x = "% of an Ethnoracial Group Enrolled in IDEA Programs",
+       y = "IDEA Funding Per Enrolled Student") +
+  theme_minimal() +
+  theme(text = element_text(family = "Tinos")) +
+  guides(color = guide_legend(override.aes = list(fill = NA))) +
+  scale_color_discrete(name = "Ethnoracial Group")
+```
+
+### Poverty and IDEA Funding
+
+Similar to race and IDEA funding, there is not a statistically significant relationship between poverty rates and IDEA funding. There is no clear relationship, statistically significant or otherwise, apparent at all.
+
+```{r idea_pov_reg, echo = FALSE, message = FALSE, warning = FALSE}
+idea_pov_reg <- crdc_spled_enr %>% 
+  filter(LEAID %in% rural_school_directory$leaid) %>% 
+  pivot_longer(cols = c(Hispanic, White, Black, Asian)) %>% 
+  merge(., poverty_data, by = "LEAID") %>%
+  merge(., fed_rev %>% rename(cat = "name"), by.x = "LEAID", by.y = "LEAID") %>%
+  filter(cat == "Special Education") %>% 
+  select(-name, -value) %>%
+  unique() %>%
+  lm(data = ., formula = fed_rev ~ young_pov_pct) %>% summary()
+idea_pov_reg <- idea_pov_reg$coefficients %>%
+  as.data.frame()
+idea_pov_reg[2,] %>%
+  tibble::rownames_to_column(., " ") %>%
+  gt()
+```
+
+```{r idea_pov_plot, echo = FALSE, message = FALSE, warning = FALSE}
+crdc_spled_enr %>% 
+  filter(LEAID %in% rural_school_directory$leaid) %>% 
+  pivot_longer(cols = c(Hispanic, White, Black, Asian)) %>% 
+  merge(., poverty_data, by = "LEAID") %>%
+  merge(., fed_rev %>% rename(cat = "name"), by.x = "LEAID", by.y = "LEAID") %>%
+  filter(cat == "Special Education") %>% 
+  select(-name, -value) %>%
+  unique() %>%
+  ggplot(aes(x = young_pov_pct, y = fed_rev)) +
+  geom_point() +
+  theme_minimal() +
+  labs(x = "% of Students Enrolled in Poverty",
+       y = "IDEA Revenue per Enrolled IDEA Student") +
   theme(text = element_text(family = "Tinos"))
 ```
 
+## A Note on Title V - Part B Grants (Rural Specific Grants)
 
-This expectation plays out in the data, with a clear relationship between federal meal revenue and a school's estimated poverty rate. This also produces a statistically significant result (p < 0.05) with an R^2 correlation value of 0.2306, indicating a moderate correlation strength.
+There are two federal grant programs that this study wanted to investigate, both under the Rural Education Achievement Program (REAP) under Title V, Part B of the ESEA: Small, Rural School Achievement (SRSA) and Rural and Low-Income School (RLIS). These programs help provide funding to rural schools that are small (< 600 average daily attendance) and/or have a high rate of poverty among its students (> 20% student poverty rate) respectively. Schools can be dual-eligible for these programs. Data on these programs is missing from the NCES School District Finance Survey, however. Only three school districts report funding from RLIS and none report funding from SRSA. This, unfortunately, makes it impossible to analyze the distribution of school districts' receiving REAP funds racial and economic composition.
 
-### IDEA Enrollment and Nutrition Funding
-
-## School Staff Funding
-
-## Rural-Specific Federal Grants
+Given available data, this would be a very beneficial source of funding to analyze given their non-competitive status; PDE (n.d.) states the purpose of these grants is "...to help rural districts that may lack the personnel and resources to compete effectively for Federal competitive grants and that often receive grant allocations in amounts that are too small to be effective in meeting their intended purposes." While RLIS does have an income requirement, SRSA does not. Additionally, neither have a racial component to their distribution. Thus, it would be interesting to investigate if schools with a higher (albeit, still low given rural schools are predominantly White) Black or Hispanic population receive more or less funding, and how much relative to other schools with different racial makeups.
 
 # Discussion
 
+The results from this study offer an interesting picture of how federal funding is employed in two different funding categories. With nutrition funding, federal funding serves as the primary funding sources that school districts rely on. As such, nutrition funding is an example of how the federal government expands their role from merely being an equalizer to being the primary meal revenue source for schools, allowing states and school districts to allocate funding to other programs that are in need of funding.
+
+On the other hand, IDEA funding represents a way that the federal government does not behave as an equalizer. There was no significant relationship found between state and federal funding, when a negative relationship would be expected if the federal government were acting as an equalizing force. Additionally, no significant and strong relationship between a rural school district's racial or income demographics and IDEA funding. With this in mind, the federal government could be playing a more active role in doling out funding, much like it does for certain types of funding. 
+
 ## Importance to Civil Rights
 
-## Further Study
-
+A child's ability to learn in an inclusive and safe environment should be an "accident of geography"; that is, students should have access to a quality education they rightfully deserve regardless of where they are born and where they are living while going to school. Some funding categories have a more immediate tie to civil rights, such as IDEA funding. Students in need of learning accommodations have a right to a "free appropriate public education" under federal law. All federal funding ties to civil rights through the federal government's enforcement of civil rights protections for students and staff; disregard or unwillingness to comply with civil rights protections eventually leads to loss of federal funding.

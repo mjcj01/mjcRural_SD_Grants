@@ -177,9 +177,19 @@ crdc_spled_enr <- crdc_spled_enr %>%
          Hispanic = "HISP_IDEA",
          White = "WHITE_IDEA",
          Asian = "ASIAN_IDEA",
-         Total = "TOT_IDEA")
+         Total = "TOT_IDEA") %>%
+  group_by(LEAID) %>%
+  reframe(Total = sum(Total),
+          Hispanic = sum(Hispanic),
+          Asian = sum(Asian),
+          White = sum(White),
+          Black = sum(Black)) %>%
+  filter(LEAID %in% pa_enrollment$leaid)
 
 title_i_nces <- nces_rev %>%
   select(LEAID, TOTALREV, TFEDREV, V33, C14) %>%
   mutate("title1_per_enr" = C14 / V33) %>%
   merge(., poverty_data, by = "LEAID")
+
+fed_rural_prog_rev <- nces_rev %>%
+  select(LEAID)
