@@ -8,12 +8,15 @@ output:
   pdf_document: default
   word_document: default
 fontsize: 12pt
+bibliography: export-data.bib
+csl: apa.csl
+nocite: '@*'
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(extrafont)
-font_import()
+#font_import()
 loadfonts(device = "win")
 source("Scripts//data_load.R", local = knitr::knit_global())
 ```
@@ -26,35 +29,36 @@ Grants and other programs from the federal government have the potential to act 
 
 # Literature Review
 
+Policymakers have a social responsibility to create education systems that ensure equal and
+equitable opportunities. Decades of disinvestment and institutional inequities have led to persistent
+funding disparities for school districts serving low-income, nonwhite, and rural students. Rural school districts are tasked with overcoming systemic deficiencies in infrastructure, access to government services, and high poverty rates. This literature review will analyze three main areas of rural education research and policy: redefining rurality, demography and the role of community in rural school districts, and the equity of federal education policies affecting rural school districts.
+
 ## Defining Rurality
 
--   Hoggart (1990): Argues against the monolithic "rural"
+There is a lack of attention paid to rural education from policymakers and scholars. Ignoring this population has resulted in inequal and inequitable material conditions for rural school districts and their communities. Kai Schafft, a rural sociologist of education (2016), argues that rural Americans, their schools, and public school students exist on the periphery of scholars’ and policymakers’ attention, despite representing a significant proportion of the population. The author claims that education policy programs, like the Rural Low Income School (RLIS) program and Small, Rural School Achievement (SRSA) programs exist as the result of rural school districts failing to meet policy goals and achievement guidelines established for all public schools, rather than a coherent policy vision specifically for rural schools. Moreover, Schafft points to the disparity in scholarly research and education specialization programs at top universities, noting that articles and programs are focused more on urban areas than on rural ones.
 
--   Nelson & Nguyen (2023): Creates a new measure for rurality using amenities available through OpenStreetMap
+Existing literature supports the conclusion that rural school districts are underserved by policymakers and researchers (Hoggart 1990; Eppley 2009). The problem starts with how rural schools are being defined. Nelson and Ngyuen (2023) argue that the school classifications are too narrowly focused on population density and proximity distance to metropolitan areas, failing to consider the services and amenities available within a community. Using the term “rural” to dictate policy approaches to funding overlooks more important differences between these communities and urban school districts than just population size. Additionally, rurality is often viewed inherently as problematic in areas like community sustainability, well-being, and equity (Nelson and Ngyuen 2023). These authors propose policymakers and researchers redefine rurality to include community measures such as environmental, social, and economic resources.
 
-## Rural Schools
+## Demography and the Role of Community in Rural School Districts
 
--   Schaft (2016): Rural school link with community well-being
+Demographers have historically shown how education contributes to and causes out-migration for rural communities. Individuals who are relatively young and possess high levels of educational attainment and training are more likely to leave their communities than rural non-movers (Brown and Schafft 2011). There is overwhelming amount educational research showing the direct relationship between educational achievement, attainment, and socioeconomic status (Bodovski 2010; Sanders et al. 2023). Students who come from backgrounds of higher socioeconomic status are more likely to take AP courses, finish high school, and enroll in top universities. Schafft (2016) demonstrates this relationship in regard to out-migration in rural school districts by showing how students of low-income backgrounds were more likely to leave their communities. The author argues that rural school districts create a paradox by preparing high-achieving students equipped with resources to leave, while also simultaneously failing to serve the students that typically stay within these rural communities.
 
--   Masumoto & Brown-Welty (2009): School and community relationship in rural districts that are "high-performing" and have high poverty rates.
+Education policy does currently exist that addresses this concern of out-migration in rural communities; the answer is community-based solutions. Rural schools can decrease out-migration by connecting students with their community through job shadow opportunities, apprenticeships, and school-to-work programs (Schafft & Harmon 2011) (Eppley 2009). Rural schools are often large employers in their communities. Grow-your-own policies aimed at recruiting and retaining local community residents for teaching and administrative positions has proven success. Boulden and Schimmel (2021) analyzed a university-district partnership aimed at connecting school counseling students with three rural elementary schools nearby. These students from West Virginia University were immersed in Kanawha County Schools and were held to the same standards as district employees. The school district retained one-third of the school counseling students as district employees following their graduation and enrollment rates in the university program increased the following year.
 
--   Bauch (2001): School and community partnerships in rural districts
+Rural schools are often associated with a strong sense of identity and serve as a place for civic engagement. Rural parents are more likely to volunteer and attend events at their kids’ schools (Schafft 2016). Place-based education that focuses on addressing local needs with academic discipline also connect students with their communities. This approach promotes sustainable community development
+(Nelson and Nyguen (2023).
 
--   Boulden & Schimmel (2021): Analysis of a university-district partnership aimed at training and retaining school counselors
+## Equity of Federal Education Policies
 
-## Federal Funding in Schools
+Title 1 funding is a federal education funding policy that aims to address inequal and inequitable outcomes on student achievement and attainment. This policy provides districts with resources to address education quality and inequity for low-income students. Title 1 funding distribution criteria consists of the overall number of students from a low-income background and the concentration of poverty. This criterion disproportionately benefits urban school districts with larger numbers of low-income students more closely concentrated geographically (Brenner 2016).
 
--   Kolbe & Rice (2012): Race to the Top (RTTP) and whether it improved funding
+No Child Left Behind (NCLB) is another federal education policy that sought to close the achievement and attainment gap between students. NCLB included a provision that forced schools to recruit individuals that matched the federal government’s definition of a “highly qualified teacher”. Eppley (2009) argued that this provision is a reductionist, quantifiable conceptualization of quality. NCLB considers teachers highly qualified if they are certified, possess a bachelor’s degree, and demonstrate knowledge in the areas they teach. A Center of Education Policy study found that over one- third of state officials considered this provision to be ineffective at improving student achievement (Eppley 2009). Rural school districts often have the most difficulty with recruiting and retaining quality teachers and administrators, a problem backed by the concept of out-migration (Schafft 2016). Therefore, this policy imposed universally on all public schools was not considerate of problems persistent for rural school districts.
 
--   Brenner (2018): The impact of the ESSA on rural education
+The Every Student Succeeds Act (ESSA) took effect in the fall of 2016 and replaced NCLB. This education policy sought to increase flexibility and allow states to determine how best to meet the needs of struggling districts. States were allowed to set the criteria for what constituted a “highly qualified teacher”. Annual testing and achievement reporting is a component consistent to NCLB and ESSA. Education policies requiring reporting and compliance paperwork place an unfair and disproportionate burden on rural school districts. When looking at the Elementary and Secondary Education Act, another federal education funding policy, Yettick (2014) found that rural districts consisting of lower staff numbers struggled to find time to complete compliance paperwork. These school districts also offered less professional development training that eases the administrative burden on school staff.
 
--   Yettick et al. (2014): Looking at ESEA and whether (and how) the administrative aspect of ESEA disadvantages rural school districts
+The Rural Education Achievement Program (REAP) began under NCLB and continued with ESSA. REAP provides states with federal funded grants which are then distributed to rural LEA’s. The Rural Education Achievement Program used “Urban-Centric” locale codes based on students’ geographic proximity to urbanized areas under ESSA. This reductionist approach to defining “rural” does not properly encompass characteristic differences that persist between urban and rural school districts.
 
--   Elliot et al. (2014): Impact of the Physical Education for Progress (PEP) federal grant in a school district
-
--   Herr & Brooks (2003): Not strictly federal, but discusses the impact of a lottery program akin to RTTP and the impact the lottery system has
-
--   Eppley (2009): Critical look at the impact of No Child Left Behind (NCLB) on rural schools, specifically the "highly qualified teacher" provision
+The last federal education funding policy to be discussed in this literature is Obama’s Race to the Top (RTT). RTT was a $4.35 billion grant program that encouraged states to enter a “voluntary” competition for federal funding. As a result of the underfunding of education across the U.S., one can ask the question if this grant program was truly “voluntary”. Kolbe and Rice 2012). States applied for these grants by submitting reform plans to be scored quantifiably based on rubric by the U.S. Department of Education. States received points for prioritizing STEM, investing in “great teachers and leaders”, and improving standards and assessments, along with several other accountability factors. Competitive grant programs favor urban and suburban school districts that have greater resources for writing competitive grant applications than rural school districts (Brenner 2016).
 
 # Data and Methods
 
@@ -93,7 +97,7 @@ Funding categories from the NCES School District Finance Survey will be picked a
 
 These categories were picked due to the clear overlap in language used in the Finance Survey between federal and state revenue. The lack of granularity within the Finance Survey is certainly a limitation of this study, though this is the best available data at the time of writing. While the PDE finance data provided more granular funding categories, the lack of actual data present in the files makes them unusable.
 
-In order to evaluate how effective federal funding is at being an equalizer, an initial linear regression model will be run in order to test whether
+In order to evaluate how effective federal funding is at being an equalizer, an initial linear regression model will be run in order to test whether state and federal funding are correlated. For each funding category analyzed, regression models will be created analyzing whether a relationship exists between the funding category and the different demographic variable in rural schools.
 
 # Who's Learning in Rural Schools?
 
@@ -136,12 +140,14 @@ pa_enrollment %>%
   pivot_wider(names_from = Locale, values_from = value) %>%
   rename(Race = "name") %>%
   gt() %>%
-  cols_align(align = "center")
+  cols_align(align = "center") %>%
+  tab_header(title = "Enrollment % by Race by Locale") %>%
+  tab_footnote(footnote = "Data from NCES Common Core of Data, 2021-22 School Year")
 ```
 
 This is a trend that generally matches the communities these school districts are situated in (see Figure 1). Rural school districts also tend to have predominantly White populations reside in them and low percentages of other ethnoracial groups. There is also far less variation in how diverse these places are; while suburban and urban schools have a mix of schools predominantly enrolling one ethnoracial group and schools with diverse enrollment, no rural school has a White student enrollment percentage under 50%.
 
-```{r enr_pop_xy_plot, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%", fig.align = "center", fig.cap = "Student enrollment % vs. community population %, broken down by locale classification and ethnoracial group."}
+```{r enr_pop_xy_plot, echo = FALSE, message = FALSE, warning = FALSE, out.width = "100%", fig.align = "center", fig.cap = "Student enrollment % vs. community population %, broken down by locale classification and ethnoracial group. Data from NCES Common Core of Data, 2021-22 School Year."}
 pa_enrollment %>%
   select(leaid, race, enrollment) %>%
   filter(race != "Total") %>%
@@ -155,8 +161,8 @@ pa_enrollment %>%
           select(leaid, urban_centric_locale) %>% 
           mutate("locale" = ifelse(grepl("Rural", urban_centric_locale), "Rural",
                                    ifelse(grepl("Town", urban_centric_locale), "Town",
-                                          ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
-                                                 ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))),
+                                   ifelse(grepl("Suburb", urban_centric_locale), "Suburban",
+                                   ifelse(grepl("City", urban_centric_locale), "Urban", "check"))))),
         by = "leaid") %>%
   ggplot(aes(x = stu_pct, y = pop_pct, color = race)) +
   geom_point() +
@@ -199,12 +205,15 @@ poverty_data %>%
   rename(Locale = "locale",
          `Est. % of Students in Poverty` = "pov_pct") %>%
   gt() %>%
-  cols_align(align = "center")
+  cols_align(align = "center") %>%
+  tab_header("Estimated Students in Poverty",
+             "Estimates aggregated to locales and averages in each district by locale") %>%
+  tab_footnote(footnote = "Data from the U.S. Census Bureau's Small Area Income and Poverty Estimates (SAIPE).")
 ```
 
 Though many rural areas are impoverished (Monk, 2007), data from the U.S. Census Bureau shows that rural school districts have poverty rates more than half that of urban areas. Poverty rates between rural and suburban areas, on the other hand, are similar. The distribution of poverty rates, however, looks different between locale classifications. Rural school districts have a much narrower distribution (standard deviation of 4.62%) than urban school districts (SD of 9.36%) and suburban school districts (SD of 7.64%).
 
-```{r pov_dens_plot, echo = FALSE, message = FALSE, warning = FALSE}
+```{r pov_dens_plot, echo = FALSE, message = FALSE, warning = FALSE, fig.cap="Data from U.S. Census Bureau's Small Area Income and Poverty Estimates (SAIPE)."}
 poverty_data %>%
   select(LEAID, young_pov_pct) %>%
   merge(.,
@@ -218,7 +227,8 @@ poverty_data %>%
         by.x = "LEAID", by.y = "leaid") %>%
   ggplot(aes(x = young_pov_pct, fill = locale)) +
   geom_density(alpha = 0.25) +
-  labs(x = "% of Students in Poverty") +
+  labs(title = "Distribution of Poverty Rates in School Districts, by Locale",
+       x = "% of Students in Poverty") +
   scale_fill_discrete(name = "Locale") +
   scale_x_continuous(labels = scales::percent) +
   theme_minimal() +
@@ -269,7 +279,9 @@ crdc_spled_enr %>%
   mutate(Race = as.factor(Race)) %>%
   arrange(fct_relevel(Race, "Total")) %>%
   gt() %>%
-  cols_align(align = "center")
+  cols_align(align = "center") %>%
+  tab_header("IDEA-Related Special Education Enrollment, by Race and Locale") %>%
+  tab_footnote(footnote = "Data from the Civil Rights Data Collection, 2021-22 School Year.")
 ```
 
 Rural school districts' IDEA enrollment patterns are not dissimilar from that of other locales. They are, nevertheless, troubling; Black and Hispanic students are enrolled in rural schools at disproportionately high rates. Despite making up 2.92% of enrolled students in rural school districts, Black students account for 22.19% of IDEA enrollment in those same schools; that is a staggering 7.6 times difference. Hispanic students make up 5.61% of enrolled students in rural schools, and yet make up 20.73% of students enrolled in IDEA in rural schools. Mis-classification of Black and Hispanic students into special education programs has long been a practice that internally segregates schools (i.e., the school-wide demographics are racially integrated, but within the school programming is still segregated) (Parker, 2024), as students in special education programs often end up in separate classrooms for special education-related classwork.
@@ -307,7 +319,7 @@ initial_reg_table %>%
   cols_width(Category ~ px(200))
 ```
 
-```{r initial_regression_plots, echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", out.width = "100%", fig.cap = "x vs. y plot of State and Federal funding in four different funding categories with a line of best fit overlayed."}
+```{r initial_regression_plots, echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", out.width = "100%", fig.cap = "x vs. y plot of State and Federal funding in four different funding categories with a line of best fit overlayed. Data from the NCES School Finance Survey, 2021-22 School Year."}
 fed_sta_comp %>%
   filter(LEAID %in% rural_school_directory$leaid) %>%
   ggplot(aes(x = sta_rev, y = fed_rev, color = name)) +
@@ -382,8 +394,30 @@ As stated above, school meal funding is correlated relatively strongly between s
 To analyze racial composition and nutrition funding, a model was assembled that correlated federal meal revenue with enrollment percentages for four ethnoracial groups: Asian, Black, Hispanic, and White students. The results of this model can be seen below.
 
 ```{r nutrition_race_reg, echo = FALSE, message = FALSE, warning = FALSE}
-nutrition_race_reg <- fed_rev %>%
-  filter(locale == "Rural") %>%
+# nutrition_race_reg <- fed_rev %>%
+#   #filter(locale == "Rural") %>%
+#   filter(name == "School Meal Programs") %>%
+#   merge(.,
+#         pa_enrollment %>%
+#           filter(race %in% c("White", "Black", "Hispanic", "Asian")) %>%
+#           select(leaid, race, enrollment),
+#         by.x = "LEAID", by.y = "leaid") %>%
+#   merge(.,
+#         pa_enrollment %>%
+#           filter(race %in% c("Total")) %>%
+#           select(leaid, enrollment) %>%
+#           rename(tot_enr = "enrollment"),
+#         by.x = "LEAID", by.y = "leaid") %>%
+#   mutate(enr_pct = enrollment / tot_enr) %>%
+#   select(-enrollment, -tot_enr) %>%
+#   pivot_wider(names_from = c(race, locale), values_from = enr_pct) %>%
+#   lm(data = ., formula = fed_rev ~ White + Black + Hispanic + Asian) %>% 
+#   summary()
+
+nutrition_race_reg <- NULL
+for (i in c("Rural", "Town", "Suburban", "Urban")) {
+  df <- fed_rev %>%
+  filter(locale == i) %>%
   filter(name == "School Meal Programs") %>%
   merge(.,
         pa_enrollment %>%
@@ -398,14 +432,22 @@ nutrition_race_reg <- fed_rev %>%
         by.x = "LEAID", by.y = "leaid") %>%
   mutate(enr_pct = enrollment / tot_enr) %>%
   select(-enrollment, -tot_enr) %>%
-  pivot_wider(names_from = race, values_from = enr_pct) %>%
+  pivot_wider(names_from = c(race), values_from = enr_pct) %>%
   lm(data = ., formula = fed_rev ~ White + Black + Hispanic + Asian) %>% 
   summary()
+  
+  df <- df$coefficients[2:5,] %>%
+    as.data.frame() %>%
+    mutate("Locale" = i) %>%
+    rownames_to_column(., "Race")
+  
+  nutrition_race_reg <- rbind(nutrition_race_reg, df)
+}
 
-nutrition_race_reg$coefficients[2:5,] %>%
-  as.data.frame() %>%
-  tibble::rownames_to_column(., "Race") %>%
-  gt()
+# nutrition_race_reg$coefficients[2:5,] %>%
+#   as.data.frame() %>%
+#   tibble::rownames_to_column(., "Race") %>%
+#   gt()
 ```
 
 There are a few notable takeaways from this model. The first is that all ethnoracial groups but Black students have a negative relationship; as one group's enrollment percentage goes up, federal funding for meals goes down to varying degrees depending on the ethnoracial group. Black students have a slightly positively correlated relationship with federal meal revenue. Notably, though, only the correlation between Asian students and federal meal revenue produces a statistically significant (p \< 0.05) result. While this is an interesting correlation, the R\^2 value is only 0.1159, indicating that while statistically significant, the relationship is not particularly strong. This pattern is likely more elaborately explained through the lens of poverty rates in schools.
@@ -415,16 +457,25 @@ There are a few notable takeaways from this model. The first is that all ethnora
 The purpose of federal nutrition assistance is to assist students whose families have difficulty affording lunches at school. The free and reduced meal program is a stable source of meals for many students. As a result, focusing on the poverty rate lens would likely show a clearer relationship between federal meal revenue and the poverty rate at a school, as opposed to between federal meal revenue and a school's ethnoracial enrollment percentages.
 
 ```{r nutrition_pov_reg, echo = FALSE, message = FALSE, warning = FALSE}
-nutrition_pov_rev <- fed_rev %>%
-  filter(locale == "Rural" & name == "School Meal Programs") %>%
-  merge(., poverty_data, by = "LEAID") %>%
-  mutate("young_pov_pct" = young_pov_pct*100) %>%
-  rename(`Est. % of Students in Poverty` = "young_pov_pct") %>%
-  lm(data = ., formula = fed_rev ~ sqrt(`Est. % of Students in Poverty`)) %>% summary()
-nutrition_pov_rev <- nutrition_pov_rev$coefficients %>%
-  as.data.frame()
-nutrition_pov_rev[2,] %>%
-  tibble::rownames_to_column(., " ") %>%
+nutrition_pov_rev <- NULL
+
+for (i in c("Rural", "Town", "Suburban", "Urban")) {
+  df <- fed_rev %>%
+    filter(locale == i & name == "School Meal Programs") %>%
+    merge(., poverty_data, by = "LEAID") %>%
+    mutate("young_pov_pct" = young_pov_pct*100) %>%
+    rename(`Est. % of Students in Poverty` = "young_pov_pct") %>%
+    lm(data = ., formula = fed_rev ~ sqrt(`Est. % of Students in Poverty`)) %>% summary()
+  df <- df$coefficients %>%
+    as.data.frame() %>%
+    mutate("Locale" = i)
+  nutrition_pov_rev <- rbind(nutrition_pov_rev, df)
+}
+
+nutrition_pov_rev %>%
+  tibble::rownames_to_column(., "test") %>%
+  filter(!grepl("Intercept", test)) %>%
+  select(Locale, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`) %>%
   gt()
 ```
 
@@ -565,3 +616,7 @@ On the other hand, IDEA funding represents a way that the federal government doe
 ## Importance to Civil Rights
 
 A child's ability to learn in an inclusive and safe environment should be an "accident of geography"; that is, students should have access to a quality education they rightfully deserve regardless of where they are born and where they are living while going to school. Some funding categories have a more immediate tie to civil rights, such as IDEA funding. Students in need of learning accommodations have a right to a "free appropriate public education" under federal law. All federal funding ties to civil rights through the federal government's enforcement of civil rights protections for students and staff; disregard or unwillingness to comply with civil rights protections eventually leads to loss of federal funding.
+
+\newpage
+
+# References
