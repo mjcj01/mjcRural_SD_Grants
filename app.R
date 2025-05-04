@@ -78,7 +78,8 @@ A childâ€™s ability to learn in an inclusive and safe environment should be an â
                                                  label = "Select a school district:",
                                                  choices = read_rds("Shiny Data//fed_rev_shiny.rds") %>%
                                                    pull(district_name),
-                                                 selected = "Central Valley SD")),
+                                                 selected = read_rds("Shiny Data//fed_rev_shiny.rds") %>%
+                                                   pull(district_name) %>% nth(., 1))),
                         mainPanel(tags$h3("School Demographics"),
                                   tags$h4("Racial Composition"),
                                   plotOutput("race_demo_plot", height = "150px"),
@@ -139,6 +140,10 @@ server <- function(input, output) {
     pivot_longer(cols = c(title_i, idea, cte, child_nutr)) %>%
     group_by(name) %>%
     reframe("med_rev" = mean(value)/mean(Total))
+  
+  district_type <- reactive({fed_rev_shiny %>%
+      filter(district_name == input$school_district) %>%
+      pull(locale) %>% unique() %>% str_to_lower()})
   
   ### Statewide plots
   
@@ -251,10 +256,11 @@ server <- function(input, output) {
             legend.text = element_text(size = 16))
   })
 
-    output$district <- renderText({paste(input$school_district, "has",
+    output$district <- renderText({paste(input$school_district, " has ",
                                          fed_rev_shiny %>%
                                            filter(district_name == input$school_district) %>%
-                                           pull(Total) %>% max(), "students enrolled in their schools.")})
+                                           pull(Total) %>% max(), " students enrolled in their schools. ",
+                                         "The school district type is ", district_type(), ".", sep = "")})
     
     output$pov_comp <- renderPlot({
       pov_value <- read_csv("Shiny Data//poverty_data_2021_22.csv") %>%

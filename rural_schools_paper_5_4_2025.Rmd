@@ -566,8 +566,6 @@ As mentioned previously, Black and Hispanic students are disproportionately repr
 
 Despite the broader pattern of disproportionate enrollment, there is little evidence from the data showing a clear relationship between the racial demographics of IDEA enrollment in a school district and the amount of IDEA funding they receive. The only statistically significant (p < 0.05) relationship is between Hispanic enrollment and IDEA funding. The effect size is fairly small with a weak correlation, though.
 
-\newpage
-
 ```{r idea_race_reg, echo = FALSE, message = FALSE, warning = FALSE}
 idea_race_reg <- NULL
 for (i in c("Rural", "Town", "Suburban", "Urban")) {
@@ -621,37 +619,6 @@ idea_race_reg %>%
   cols_hide("Locale") %>%
   tab_header("IDEA Funding ~ IDEA Enrollment by Race, by Locale") %>%
   tab_footnote("Table 8. Data from NCES School District Finance Survey and U.S. Department of Education Civil Rights Data Collection (CRDC).")
-```
-
-```{r idea_race_plot, echo = FALSE, message = FALSE, warning = FALSE}
-crdc_spled_enr %>% 
-  filter(LEAID %in% rural_school_directory$leaid) %>% 
-  pivot_longer(cols = c(Hispanic, White, Black, Asian)) %>% 
-  merge(., 
-        pa_enrollment %>% 
-          select(leaid, race, enrollment), 
-        by.x = c("LEAID", "name"), by.y = c("leaid", "race")) %>% 
-  group_by(name) %>% 
-  reframe(LEAID = LEAID, "enr_pct" = value / enrollment, enr = enrollment) %>%
-  mutate(enr_pct = ifelse(is.nan(enr_pct), 0, enr_pct)) %>%
-  merge(.,
-        nces_rev %>%
-          select(LEAID, V33, C15) %>%
-          reframe(LEAID = LEAID,
-                  idea_per_enr = C15 / V33),
-        by = "LEAID") %>%
-  ggplot(aes(x = enr_pct, y = idea_per_enr, color = name)) +
-  geom_point() +
-  facet_wrap(vars(name)) +
-  geom_smooth(aes(group = name), method = "lm") +
-  scale_x_continuous(limits = c(0, 1),
-                     labels = scales::percent) +
-  labs(x = "% of an Ethnoracial Group Enrolled in IDEA Programs",
-       y = "IDEA Funding Per Enrolled Student") +
-  theme_minimal() +
-  theme(text = element_text(family = "Tinos")) +
-  guides(color = guide_legend(override.aes = list(fill = NA))) +
-  scale_color_discrete(name = "Ethnoracial Group")
 ```
 
 ### Poverty and IDEA Funding

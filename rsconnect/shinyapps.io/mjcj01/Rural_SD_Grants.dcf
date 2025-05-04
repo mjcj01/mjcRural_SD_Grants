@@ -5,7 +5,7 @@ account: mjcj01
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14677489
-bundleId: 10225637
+bundleId: 10229087
 url: https://mjcj01.shinyapps.io/Rural_SD_Grants/
 version: 1
 asMultiple: FALSE
